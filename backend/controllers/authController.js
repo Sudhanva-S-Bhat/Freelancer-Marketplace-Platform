@@ -1,0 +1,122 @@
+const bcrypt = require('bcryptjs');
+const User = require('../models/User');
+const generateToken = require('../utils/generateToken');
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validateRegistration({ fullName, email, username, password, confirmPassword }) {
+  if (!fullName || !email || !username || !password || !confirmPassword) {
+    return 'All fields are required';
+  }
+  if (!EMAIL_REGEX.test(email)) {
+    return 'Please enter a valid email address';
+  }
+  if (password.length < 8) {
+    return 'Password must be at least 8 characters long';
+  }
+  if (password !== confirmPassword) {
+    return 'Passwords do not match';
+  }
+  return null;
+}
+
+function register(role) {
+  return async (req, res) => {
+    try {
+      const { fullName, email, username, password, confirmPassword } = req.body;
+
+      const validationError = validateRegistration({ fullName, email, username, password, confirmPassword });
+      if (validationError) {
+        return res.status(400).json({ success: false, message: validationError });
+      }
+
+      const existingUser = await User.findOne({
+        $or: [{ email: email.toLowerCase() }, { username: username.toLowerCase() }],
+      });
+
+      if (existingUser) {
+        const field = existingUser.email === email.toLowerCase() ? 'Email' : 'Username';
+        return res.status(409).json({ success: false, message: `${field} is already in use` });
+      }
+
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      const user = await User.create({
+        fullName,
+        email: email.toLowerCase(),
+        username: username.toLowerCase(),
+        passwordHash,
+        role,
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: 'Registration successful. Please log in.',
+        user: { id: user._id, fullName: user.fullName, username: user.username, role: user.role },
+      });
+    } catch (err) {
+      return res.status(500).json({ success: false, message: 'Registration failed', error: err.message });
+    }
+  };
+}
+
+function login(role) {
+  return async (req, res) => {
+    try {
+      const { identifier, password } = req.body; // identifier = email or username
+
+      if (!identifier || !password) {
+        return res.status(400).json({ success: false, message: 'Email/username and password are required' });
+      }
+
+      const user = await User.findOne({
+        role,
+        $or: [{ email: identifier.toLowerCase() }, { username: identifier.toLowerCase() }],
+      });
+
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      }
+
+      const passwordMatches = await bcrypt.compare(password, user.passwordHash);
+      if (!passwordMatches) {
+        return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      }
+
+      const token = generateToken(user);
+
+      return res.json({
+        success: true,
+        token,
+        user: {
+          id: user._id,
+          fullName: user.fullName,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          profileCompleted: user.profileCompleted,
+        },
+      });
+    } catch (err) {
+      return res.status(500).json({ success: false, message: 'Login failed', error: err.message });
+    }
+  };
+}
+
+async function me(req, res) {
+  return res.json({ success: true, user: req.user });
+}
+
+function logout(req, res) {
+  // JWT is stateless and stored client-side, so logout is handled by discarding the token on the client.
+  return res.json({ success: true, message: 'Logged out successfully' });
+}
+
+module.exports = {
+  registerClient: register('CLIENT'),
+  registerFreelancer: register('FREELANCER'),
+  loginClient: login('CLIENT'),
+  loginFreelancer: login('FREELANCER'),
+  me,
+  logout,
+};
