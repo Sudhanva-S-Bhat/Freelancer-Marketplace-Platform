@@ -3,13 +3,20 @@ const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const IDENTITY_REGEX = /^[a-zA-Z0-9]+$/;
 
-function validateRegistration({ fullName, email, username, password, confirmPassword }) {
-  if (!fullName || !email || !username || !password || !confirmPassword) {
+function validateRegistration({ fullName, email, username, password, confirmPassword, identityNumber }) {
+  if (!fullName || !email || !username || !password || !confirmPassword || !identityNumber) {
     return 'All fields are required';
   }
   if (!EMAIL_REGEX.test(email)) {
     return 'Please enter a valid email address';
+  }
+  if (!IDENTITY_REGEX.test(identityNumber)) {
+    return 'Identity / Registration Number must be alphanumeric (letters and numbers only)';
+  }
+  if (identityNumber.length < 6) {
+    return 'Identity / Registration Number must be at least 6 characters long';
   }
   if (password.length < 8) {
     return 'Password must be at least 8 characters long';
@@ -23,9 +30,9 @@ function validateRegistration({ fullName, email, username, password, confirmPass
 function register(role) {
   return async (req, res) => {
     try {
-      const { fullName, email, username, password, confirmPassword } = req.body;
+      const { fullName, email, username, password, confirmPassword, identityNumber } = req.body;
 
-      const validationError = validateRegistration({ fullName, email, username, password, confirmPassword });
+      const validationError = validateRegistration({ fullName, email, username, password, confirmPassword, identityNumber });
       if (validationError) {
         return res.status(400).json({ success: false, message: validationError });
       }
@@ -46,6 +53,7 @@ function register(role) {
         email: email.toLowerCase(),
         username: username.toLowerCase(),
         passwordHash,
+        identityNumber,
         role,
       });
 
@@ -98,6 +106,7 @@ function login(role) {
         },
       });
     } catch (err) {
+      console.error("Login Error:", err);
       return res.status(500).json({ success: false, message: 'Login failed', error: err.message });
     }
   };

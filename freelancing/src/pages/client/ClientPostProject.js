@@ -1,167 +1,185 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FileText, Layers, DollarSign, Calendar, Tag, Star, CheckCircle } from "lucide-react";
 import api from "../../api/axiosInstance";
+import "../../styles/dashboard.css";
+
+const FIELD = ({ label, children }) => (
+  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    <label style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: "var(--text-faint)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</label>
+    {children}
+  </div>
+);
+
+const inputStyle = {
+  width: "100%", padding: "13px 16px", borderRadius: "var(--radius-sm)",
+  border: "1px solid var(--border-strong)", background: "rgba(255,255,255,0.02)",
+  color: "var(--text)", fontSize: 14.5, fontFamily: "var(--font-body)",
+  outline: "none", boxSizing: "border-box",
+  transition: "border-color .25s, box-shadow .25s",
+};
+
+const selectStyle = {
+  ...inputStyle,
+  cursor: "pointer",
+  appearance: "none",
+  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239aa2ba' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+  backgroundRepeat: "no-repeat", backgroundPosition: "right 14px center",
+};
 
 export default function ClientPostProject() {
   const navigate = useNavigate();
-  
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    category: "",
-    requiredSkills: "",
-    budget: "",
-    deadline: "",
+    title: "", description: "", category: "",
+    requiredSkills: "", budget: "", deadline: "",
     experienceLevel: "Intermediate"
   });
-
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError]     = useState("");
   const [success, setSuccess] = useState("");
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
-    setLoading(true);
-
+    setError(""); setSuccess(""); setLoading(true);
     try {
-      // Convert skills comma separated to array
-      const skillsArray = formData.requiredSkills
-        .split(",")
-        .map(s => s.trim())
-        .filter(s => s !== "");
-
-      const payload = {
-        ...formData,
-        requiredSkills: skillsArray,
-        budget: Number(formData.budget)
-      };
-
-      const res = await api.post("/projects", payload);
-
+      const skillsArray = formData.requiredSkills.split(",").map(s => s.trim()).filter(Boolean);
+      const res = await api.post("/projects", { ...formData, requiredSkills: skillsArray, budget: Number(formData.budget) });
       if (res.data.success) {
         setSuccess("Project posted successfully!");
-        setTimeout(() => {
-          navigate("/client/dashboard");
-        }, 1500);
+        setTimeout(() => navigate("/client/dashboard"), 1500);
       }
     } catch (err) {
       setError(err.response?.data?.message || "Failed to post project");
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
+  const focusStyle = (e) => { e.target.style.borderColor = "var(--cyan)"; e.target.style.boxShadow = "0 0 0 4px rgba(47,216,238,0.1)"; };
+  const blurStyle  = (e) => { e.target.style.borderColor = "var(--border-strong)"; e.target.style.boxShadow = "none"; };
+
   return (
-    <div className="dashboard-content">
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-        <h1 style={{ marginBottom: '8px' }}>Post a New Project</h1>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
-          Fill out the form below to post your project and start receiving proposals.
-        </p>
-
-        {error && <div className="error-banner">{error}</div>}
-        {success && (
-          <div style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #10b981', padding: '12px 16px', borderRadius: 'var(--radius-md)', marginBottom: '20px' }}>
-            {success}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="dashboard-card">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Project Title</label>
-              <input 
-                type="text" 
-                name="title" 
-                placeholder="e.g. Build an E-commerce Website"
-                value={formData.title}
-                onChange={handleChange}
-                required 
-              />
-            </div>
-
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Description</label>
-              <textarea 
-                name="description"
-                placeholder="Describe your project in detail..."
-                rows="5"
-                value={formData.description}
-                onChange={handleChange}
-                required 
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Category</label>
-              <select name="category" value={formData.category} onChange={handleChange} required>
-                <option value="">Select a category</option>
-                <option value="Web Development">Web Development</option>
-                <option value="Mobile Development">Mobile Development</option>
-                <option value="Design">Design</option>
-                <option value="Writing">Writing</option>
-                <option value="Marketing">Marketing</option>
-              </select>
-            </div>
-
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Experience Level</label>
-              <select name="experienceLevel" value={formData.experienceLevel} onChange={handleChange} required>
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Expert">Expert</option>
-              </select>
-            </div>
-
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Required Skills (comma separated)</label>
-              <input 
-                type="text" 
-                name="requiredSkills" 
-                placeholder="e.g. React, Node.js, MongoDB"
-                value={formData.requiredSkills}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Budget (₹)</label>
-              <input 
-                type="number" 
-                name="budget" 
-                placeholder="e.g. 50000"
-                min="0"
-                value={formData.budget}
-                onChange={handleChange}
-                required 
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Deadline</label>
-              <input 
-                type="date" 
-                name="deadline" 
-                value={formData.deadline}
-                onChange={handleChange}
-                required 
-              />
-            </div>
-            
-            <div style={{ gridColumn: '1 / -1', marginTop: '16px' }}>
-              <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', padding: '14px' }}>
-                {loading ? "Posting Project..." : "Post Project"}
-              </button>
-            </div>
-          </div>
-        </form>
+    <div className="dashboard-page">
+      {/* Header */}
+      <div className="dashboard-header-flex">
+        <div>
+          <h1 style={{ fontSize: 28 }}>Post a New Project</h1>
+          <p style={{ color: "var(--text-dim)", marginTop: 6 }}>Fill in the details below to start receiving proposals from top freelancers.</p>
+        </div>
       </div>
+
+      {error   && <div className="error-banner">{error}</div>}
+      {success && (
+        <div style={{ background: "rgba(62,230,168,0.1)", border: "1px solid rgba(62,230,168,0.3)", color: "var(--ok)", padding: "14px 18px", borderRadius: "var(--radius-md)", display: "flex", alignItems: "center", gap: 10 }}>
+          <CheckCircle size={16} /> {success}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit}>
+        <div className="dashboard-card" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+
+          {/* Title */}
+          <div style={{ gridColumn: "1 / -1" }}>
+            <FIELD label="Project Title">
+              <div style={{ position: "relative" }}>
+                <FileText size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-faint)" }} />
+                <input type="text" name="title" placeholder="e.g. Build an E-commerce Website"
+                  value={formData.title} onChange={handleChange} required
+                  style={{ ...inputStyle, paddingLeft: 42 }}
+                  onFocus={focusStyle} onBlur={blurStyle} />
+              </div>
+            </FIELD>
+          </div>
+
+          {/* Description */}
+          <div style={{ gridColumn: "1 / -1" }}>
+            <FIELD label="Description">
+              <textarea name="description" placeholder="Describe your project requirements, goals, and any specific details…"
+                rows={5} value={formData.description} onChange={handleChange} required
+                style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
+                onFocus={focusStyle} onBlur={blurStyle} />
+            </FIELD>
+          </div>
+
+          {/* Category */}
+          <FIELD label="Category">
+            <div style={{ position: "relative" }}>
+              <Layers size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-faint)", pointerEvents: "none" }} />
+              <select name="category" value={formData.category} onChange={handleChange} required
+                style={{ ...selectStyle, paddingLeft: 42 }}
+                onFocus={focusStyle} onBlur={blurStyle}>
+                <option value="">Select category</option>
+                {["Web Development","Mobile Development","Design","Writing","Marketing","Data Science","Video & Animation","Other"].map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+          </FIELD>
+
+          {/* Experience Level */}
+          <FIELD label="Experience Level">
+            <div style={{ position: "relative" }}>
+              <Star size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-faint)", pointerEvents: "none" }} />
+              <select name="experienceLevel" value={formData.experienceLevel} onChange={handleChange}
+                style={{ ...selectStyle, paddingLeft: 42 }}
+                onFocus={focusStyle} onBlur={blurStyle}>
+                {["Beginner","Intermediate","Expert"].map(l => <option key={l} value={l}>{l}</option>)}
+              </select>
+            </div>
+          </FIELD>
+
+          {/* Skills */}
+          <FIELD label="Required Skills (comma separated)">
+            <div style={{ position: "relative" }}>
+              <Tag size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-faint)" }} />
+              <input type="text" name="requiredSkills" placeholder="e.g. React, Node.js, MongoDB"
+                value={formData.requiredSkills} onChange={handleChange}
+                style={{ ...inputStyle, paddingLeft: 42 }}
+                onFocus={focusStyle} onBlur={blurStyle} />
+            </div>
+          </FIELD>
+
+          {/* Budget */}
+          <FIELD label="Budget (₹)">
+            <div style={{ position: "relative" }}>
+              <DollarSign size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-faint)" }} />
+              <input type="number" name="budget" placeholder="e.g. 50000" min="0"
+                value={formData.budget} onChange={handleChange} required
+                style={{ ...inputStyle, paddingLeft: 42 }}
+                onFocus={focusStyle} onBlur={blurStyle} />
+            </div>
+          </FIELD>
+
+          {/* Deadline */}
+          <FIELD label="Deadline">
+            <div style={{ position: "relative" }}>
+              <Calendar size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-faint)" }} />
+              <input type="date" name="deadline"
+                value={formData.deadline} onChange={handleChange} required
+                style={{ ...inputStyle, paddingLeft: 42, colorScheme: "dark" }}
+                onFocus={focusStyle} onBlur={blurStyle} />
+            </div>
+          </FIELD>
+
+          {/* Submit */}
+          <div style={{ gridColumn: "1 / -1", marginTop: 8 }}>
+            <button type="submit" disabled={loading} style={{
+              width: "100%", padding: "15px 24px", borderRadius: 999, border: "none",
+              background: loading ? "rgba(255,255,255,0.05)" : "linear-gradient(90deg,#2fd8ee,#8b6bf5)",
+              color: loading ? "var(--text-faint)" : "#04070d",
+              fontWeight: 700, fontSize: 16, cursor: loading ? "not-allowed" : "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+              transition: "box-shadow .25s",
+            }}
+              onMouseOver={e => { if (!loading) e.currentTarget.style.boxShadow = "0 8px 30px -8px rgba(47,216,238,.55)"; }}
+              onMouseOut={e => e.currentTarget.style.boxShadow = "none"}
+            >
+              {loading && <span style={{ width: 16, height: 16, borderRadius: "50%", border: "2px solid rgba(4,7,13,.3)", borderTopColor: "#04070d", animation: "spin .7s linear infinite", display: "inline-block" }} />}
+              {loading ? "Posting Project…" : "Post Project"}
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
   );
 }

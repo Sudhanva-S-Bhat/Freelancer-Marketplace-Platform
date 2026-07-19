@@ -10,6 +10,7 @@ const projectRoutes = require('./routes/projectRoutes');
 const clientRoutes = require('./routes/clientRoutes');
 const freelancerRoutes = require('./routes/freelancerRoutes');
 const proposalRoutes = require('./routes/proposalRoutes');
+const messageRoutes = require('./routes/messageRoutes');
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/client', clientRoutes);
 app.use('/api/freelancer', freelancerRoutes);
 app.use('/api/proposals', proposalRoutes);
+app.use('/api/messages', messageRoutes);
 
 app.get('/api/health', (req, res) => res.json({ success: true, message: 'API is running' }));
 

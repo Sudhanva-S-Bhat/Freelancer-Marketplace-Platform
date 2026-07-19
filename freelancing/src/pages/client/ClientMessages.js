@@ -1,8 +1,8 @@
-export default function ClientMessages() {
-  return (
-    <div className="dashboard-content">
-      <h1>Messages</h1>
-      <p>Chat with freelancers.</p>
-    </div>
-  );
+import React from 'react';
+import ChatInterface from '../../components/chat/ChatInterface';
+
+function ClientMessages() {
+    return <ChatInterface currentUserRole="CLIENT" />;
 }
+
+export default ClientMessages;
