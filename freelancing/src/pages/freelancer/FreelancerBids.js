@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileText, DollarSign, Clock, CheckCircle, XCircle, AlertCircle, MessageSquare, Send, X } from 'lucide-react';
+import { FileText, DollarSign, Clock, CheckCircle, XCircle, AlertCircle, Send, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosInstance';
 import '../../styles/dashboard.css';
