@@ -30,10 +30,22 @@ function ClientRegister() {
         if (form.password.length < 8) return setError("Password must be at least 8 characters");
         
         setLoading(true);
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        setGeneratedOtp(otp);
-
+        
         try {
+            // First check if the email/username already exists on the backend
+            const existsCheck = await api.post("/auth/check-exists", {
+                email: form.email,
+                username: form.username
+            });
+            if (!existsCheck.data.success) {
+                setError(existsCheck.data.message);
+                setLoading(false);
+                return;
+            }
+
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            setGeneratedOtp(otp);
+
             // EmailJS send template details
             const serviceId = "service_fpqnxup";
             const templateId = "template_mbvkn0e";
@@ -53,10 +65,15 @@ function ClientRegister() {
             console.log("EmailJS verification code sent successfully!");
             setOtpModalOpen(true);
         } catch (err) {
-            console.warn("EmailJS credentials not set. Falling back to local OTP verification simulation.", err);
-            // Fallback for easy testing: Alert the code and open verification modal
-            alert(`[TESTING OTP CODE]: Your verification code is: ${otp}`);
-            setOtpModalOpen(true);
+            if (err.response && err.response.status === 409) {
+                setError(err.response.data.message || "Email or Username already in use");
+            } else {
+                console.warn("EmailJS credentials not set. Falling back to local OTP verification simulation.", err);
+                const fallbackOtp = Math.floor(100000 + Math.random() * 900000).toString();
+                setGeneratedOtp(fallbackOtp);
+                alert(`[TESTING OTP CODE]: Your verification code is: ${fallbackOtp}`);
+                setOtpModalOpen(true);
+            }
         } finally {
             setLoading(false);
         }
