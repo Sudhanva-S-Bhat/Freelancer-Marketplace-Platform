@@ -1,34 +1,46 @@
-const Review          = require('../models/Review');
-const Project         = require('../models/Project');
-const FreelancerProfile = require('../models/FreelancerProfile');
+const Review   = require('../models/Review');
+const Project  = require('../models/Project');
+const Proposal = require('../models/Proposal');
 
-/* ── Client: Submit a review ─────────────────── */
+/* ── Submit a review (CLIENT or FREELANCER) ──── */
 exports.submitReview = async (req, res) => {
   try {
-    const clientId  = req.user._id;
+    const reviewerId = req.user._id;
+    const role       = req.user.role; // 'CLIENT' or 'FREELANCER'
     const { projectId, rating, comment } = req.body;
 
     const project = await Project.findById(projectId);
     if (!project) return res.status(404).json({ success: false, message: 'Project not found' });
-    if (project.client.toString() !== clientId.toString())
-      return res.status(403).json({ success: false, message: 'Not your project' });
     if (project.status !== 'Completed')
       return res.status(400).json({ success: false, message: 'Project must be completed first' });
 
-    // Find the accepted proposal to get freelancer id
-    const Proposal = require('../models/Proposal');
+    // Find the accepted proposal to know who's involved
     const accepted = await Proposal.findOne({ project: projectId, status: 'accepted' });
     if (!accepted) return res.status(404).json({ success: false, message: 'No accepted freelancer for this project' });
 
-    const existing = await Review.findOne({ project: projectId, client: clientId });
+    let revieweeId;
+    if (role === 'CLIENT') {
+      // Client must own this project
+      if (project.client.toString() !== reviewerId.toString())
+        return res.status(403).json({ success: false, message: 'Not your project' });
+      revieweeId = accepted.freelancer; // client reviews freelancer
+    } else {
+      // Freelancer must be the accepted one
+      if (accepted.freelancer.toString() !== reviewerId.toString())
+        return res.status(403).json({ success: false, message: 'You are not the freelancer on this project' });
+      revieweeId = project.client; // freelancer reviews client
+    }
+
+    const existing = await Review.findOne({ project: projectId, reviewer: reviewerId });
     if (existing) return res.status(400).json({ success: false, message: 'You already reviewed this project' });
 
     const review = await Review.create({
-      project:    projectId,
-      freelancer: accepted.freelancer,
-      client:     clientId,
-      rating:     Number(rating),
-      comment:    comment || '',
+      project:      projectId,
+      reviewer:     reviewerId,
+      reviewee:     revieweeId,
+      reviewerRole: role,
+      rating:       Number(rating),
+      comment:      comment || '',
     });
 
     res.status(201).json({ success: true, message: 'Review submitted', review });
@@ -37,13 +49,13 @@ exports.submitReview = async (req, res) => {
   }
 };
 
-/* ── Get reviews for a freelancer ────────────── */
-exports.getFreelancerReviews = async (req, res) => {
+/* ── Get reviews FOR a user (as reviewee) ───── */
+exports.getUserReviews = async (req, res) => {
   try {
-    const { freelancerId } = req.params;
+    const { userId } = req.params;
 
-    const reviews = await Review.find({ freelancer: freelancerId })
-      .populate('client',  'fullName username')
+    const reviews = await Review.find({ reviewee: userId })
+      .populate('reviewer', 'fullName username')
       .populate('project', 'title')
       .sort({ createdAt: -1 });
 
@@ -57,12 +69,12 @@ exports.getFreelancerReviews = async (req, res) => {
   }
 };
 
-/* ── Check if client already reviewed a project ─ */
+/* ── Check if current user already reviewed a project ─ */
 exports.checkReview = async (req, res) => {
   try {
-    const clientId  = req.user._id;
+    const reviewerId = req.user._id;
     const { projectId } = req.params;
-    const review = await Review.findOne({ project: projectId, client: clientId });
+    const review = await Review.findOne({ project: projectId, reviewer: reviewerId });
     res.json({ success: true, hasReviewed: !!review, review: review || null });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error', error: err.message });

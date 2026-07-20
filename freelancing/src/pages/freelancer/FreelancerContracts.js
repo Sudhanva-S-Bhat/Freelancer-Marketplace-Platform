@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Briefcase, ExternalLink, Send, X, MessageSquare } from 'lucide-react';
+import { Briefcase, ExternalLink, Send, X, MessageSquare, Star } from 'lucide-react';
 import api from '../../api/axiosInstance';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -18,17 +18,120 @@ const inp = {
 const focusIn  = e => { e.target.style.borderColor = 'var(--cyan)'; e.target.style.boxShadow = '0 0 0 4px rgba(47,216,238,.1)'; };
 const focusOut = e => { e.target.style.borderColor = 'var(--border-strong)'; e.target.style.boxShadow = 'none'; };
 
+/* ── Star Rating Input ──────────────────── */
+function StarRating({ value, onChange }) {
+  const [hovered, setHovered] = useState(null);
+  return (
+    <div style={{ display: 'flex', gap: 6 }}>
+      {[1,2,3,4,5].map(n => (
+        <button key={n} type="button"
+          onClick={() => onChange(n)}
+          onMouseEnter={() => setHovered(n)}
+          onMouseLeave={() => setHovered(null)}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, transition: 'transform .15s' }}
+          onMouseOver={e => e.currentTarget.style.transform = 'scale(1.2)'}
+          onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+        >
+          <Star size={28} fill={(hovered || value) >= n ? '#f5b93c' : 'none'} color={(hovered || value) >= n ? '#f5b93c' : 'var(--border-strong)'} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ── Review Modal (Freelancer → Client) ───── */
+function ReviewModal({ contract, onClose, onSubmitted }) {
+  const [rating,  setRating]  = useState(0);
+  const [comment, setComment] = useState('');
+  const [saving,  setSaving]  = useState(false);
+  const [done,    setDone]    = useState(false);
+  const [error,   setError]   = useState('');
+
+  useEffect(() => {
+    const h = e => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [onClose]);
+
+  const handleSubmit = async e => {
+    e.preventDefault();
+    if (!rating) return setError('Please select a star rating.');
+    setSaving(true); setError('');
+    try {
+      const res = await api.post('/reviews/submit', { projectId: contract.project._id, rating, comment });
+      if (res.data.success) { setDone(true); onSubmitted && onSubmitted(); }
+    } catch (err) { setError(err.response?.data?.message || 'Failed to submit.'); }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+    >
+      <motion.div initial={{ opacity: 0, scale: .92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: .92, y: 20 }}
+        transition={{ ease: [.16,.84,.44,1], duration: .3 }}
+        onClick={e => e.stopPropagation()}
+        style={{ width: '100%', maxWidth: 480, background: 'linear-gradient(135deg,rgba(13,17,32,.98),rgba(8,11,20,1))', borderRadius: 'var(--r-xl)', border: '1px solid var(--border-strong)', boxShadow: '0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(245,185,92,.1)', overflow: 'hidden' }}
+      >
+        <div style={{ padding: '22px 26px 18px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <p style={{ fontWeight: 700, fontSize: 15, margin: 0 }}>Rate the Client</p>
+            <p style={{ color: 'var(--warn)', fontSize: 12, margin: 0, fontFamily: 'var(--font-mono)' }}>{contract.project.title}</p>
+          </div>
+          <button onClick={onClose} style={{ background: 'rgba(255,255,255,.05)', border: '1px solid var(--border-strong)', color: 'var(--text-dim)', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={14} /></button>
+        </div>
+        <div style={{ padding: '26px 26px 22px' }}>
+          {done ? (
+            <div style={{ textAlign: 'center', padding: '20px 0' }}>
+              <div style={{ fontSize: 48, marginBottom: 14 }}>⭐</div>
+              <p style={{ fontWeight: 700, fontSize: 16, marginBottom: 8 }}>Review Submitted!</p>
+              <p style={{ color: 'var(--text-dim)', fontSize: 14 }}>Thank you for your feedback.</p>
+              <button onClick={onClose} style={{ marginTop: 20, padding: '10px 24px', borderRadius: 999, border: 'none', background: 'linear-gradient(90deg,var(--warn),var(--cyan))', color: '#04070d', fontWeight: 700, cursor: 'pointer' }}>Close</button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {error && <div className="error-banner">{error}</div>}
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ color: 'var(--text-dim)', fontSize: 13.5, marginBottom: 14 }}>How was working with this client?</p>
+                <StarRating value={rating} onChange={setRating} />
+                <p style={{ color: 'var(--warn)', fontSize: 13, marginTop: 10, fontWeight: 600 }}>
+                  {rating === 1 ? 'Poor' : rating === 2 ? 'Fair' : rating === 3 ? 'Good' : rating === 4 ? 'Very Good' : rating === 5 ? 'Excellent!' : ''}
+                </p>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Review (optional)</label>
+                <textarea rows={3} value={comment} onChange={e => setComment(e.target.value)}
+                  placeholder="Share your experience working with this client…"
+                  style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: '1px solid var(--border-strong)', background: 'rgba(255,255,255,.04)', color: 'var(--text)', fontSize: 14, resize: 'vertical', fontFamily: 'var(--font-body)', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                <button type="button" onClick={onClose} style={{ padding: '10px 20px', borderRadius: 999, border: '1px solid var(--border-strong)', background: 'rgba(255,255,255,.03)', color: 'var(--text-dim)', fontSize: 13.5, cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" disabled={saving || !rating} style={{ padding: '10px 22px', borderRadius: 999, border: 'none', background: rating ? 'linear-gradient(90deg,#f5b93c,var(--cyan))' : 'rgba(255,255,255,.06)', color: rating ? '#04070d' : 'var(--text-faint)', fontWeight: 700, fontSize: 13.5, cursor: rating && !saving ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: 7 }}>
+                  {saving ? 'Submitting…' : <><Star size={14} /> Submit Review</>}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function FreelancerContracts() {
     const navigate = useNavigate();
     const [contracts, setContracts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Update Modal
     const [selectedContract, setSelectedContract] = useState(null);
     const [updateText, setUpdateText] = useState('');
     const [fileLink, setFileLink] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [reviewTarget, setReviewTarget] = useState(null); // contract to review
+    const [reviewedIds, setReviewedIds] = useState(new Set()); // project ids already reviewed
 
     useEffect(() => {
         fetchContracts();
@@ -150,6 +253,20 @@ export default function FreelancerContracts() {
                                         >
                                             <Send size={14} style={{ marginRight: 6 }} /> Add Update
                                         </Button>
+                                        {/* Rate Client — only for completed projects */}
+                                        {contract.project.status === 'Completed' && (
+                                            reviewedIds.has(contract.project._id) ? (
+                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 14px', borderRadius: 999, background: 'rgba(245,185,92,.08)', border: '1px solid rgba(245,185,92,.25)', color: '#f5b93c', fontSize: 13, fontWeight: 600 }}>
+                                                    <Star size={13} fill="#f5b93c" color="#f5b93c" /> Reviewed
+                                                </span>
+                                            ) : (
+                                                <button onClick={() => setReviewTarget(contract)}
+                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 999, border: 'none', background: 'linear-gradient(90deg,#f5b93c,var(--cyan))', color: '#04070d', fontWeight: 700, fontSize: 13, cursor: 'pointer', boxShadow: '0 4px 14px rgba(245,185,92,.25)' }}
+                                                >
+                                                    <Star size={13} /> Rate Client
+                                                </button>
+                                            )
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -219,6 +336,20 @@ export default function FreelancerContracts() {
                             </form>
                         </motion.div>
                     </div>
+                )}
+            </AnimatePresence>
+
+            {/* Rate Client Modal */}
+            <AnimatePresence>
+                {reviewTarget && (
+                    <ReviewModal
+                        contract={reviewTarget}
+                        onClose={() => setReviewTarget(null)}
+                        onSubmitted={() => {
+                            setReviewedIds(prev => new Set([...prev, reviewTarget.project._id]));
+                            setReviewTarget(null);
+                        }}
+                    />
                 )}
             </AnimatePresence>
         </div>

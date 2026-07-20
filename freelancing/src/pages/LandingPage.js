@@ -44,7 +44,7 @@ const LandingPage = () => {
       <nav className="landing-nav">
         <div className="nav-container">
           <div className="nav-logo" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Sparkles size={28} color="var(--primary)" />
+            <img src="/logo.png" alt="Lumina" style={{ width: 32, height: 32, objectFit: 'contain' }} />
             <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Lumina</span>
           </div>
           <div className="nav-links">
@@ -153,20 +153,20 @@ const LandingPage = () => {
           <div className="footer-links">
             <div>
               <h4>For Clients</h4>
-              <a href="/">How to Hire</a>
-              <a href="/">Talent Marketplace</a>
-              <a href="/">Project Catalog</a>
+              <a href="#">How to Hire</a>
+              <a href="#">Talent Marketplace</a>
+              <a href="#">Project Catalog</a>
             </div>
             <div>
               <h4>For Freelancers</h4>
-              <a href="/">How to Find Work</a>
-              <a href="/">Create Profile</a>
+              <a href="#">How to Find Work</a>
+              <a href="#">Create Profile</a>
             </div>
             <div>
               <h4>Company</h4>
-              <a href="/">About Us</a>
-              <a href="/">Careers</a>
-              <a href="/">Contact Support</a>
+              <a href="#">About Us</a>
+              <a href="#">Careers</a>
+              <a href="#">Contact Support</a>
             </div>
           </div>
         </div>
