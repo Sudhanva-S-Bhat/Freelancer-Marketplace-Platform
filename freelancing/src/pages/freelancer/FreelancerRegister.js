@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/axiosInstance";
 import "../../styles/auth.css";
 
+import emailjs from '@emailjs/browser';
+
 function FreelancerRegister() {
     const navigate = useNavigate();
     const [form, setForm] = useState({
@@ -12,29 +14,84 @@ function FreelancerRegister() {
     const [error, setError]   = useState("");
     const [success, setSuccess] = useState("");
     const [loading, setLoading] = useState(false);
+    
+    // OTP Flow states
+    const [generatedOtp, setGeneratedOtp] = useState(null);
+    const [enteredOtp, setEnteredOtp]     = useState("");
+    const [otpModalOpen, setOtpModalOpen] = useState(false);
+    const [verifying, setVerifying]       = useState(false);
 
     const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
+    // Handle sending the OTP email
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
         if (form.password !== form.confirmPassword) return setError("Passwords do not match");
         if (form.password.length < 8) return setError("Password must be at least 8 characters");
+        
         setLoading(true);
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        setGeneratedOtp(otp);
+
+        try {
+            // EmailJS send template details (Replace Service / Template / Public Key if you have custom keys)
+            const serviceId = "service_lumina";
+            const templateId = "template_otp";
+            const publicKey = "user_lumina_public_key";
+
+            // Attempt EmailJS dispatch
+            await emailjs.send(
+                serviceId,
+                templateId,
+                {
+                    to_name: form.fullName,
+                    to_email: form.email,
+                    otp_code: otp,
+                },
+                publicKey
+            );
+            console.log("EmailJS verification code sent successfully!");
+            setOtpModalOpen(true);
+        } catch (err) {
+            console.warn("EmailJS credentials not set. Falling back to local OTP verification simulation.", err);
+            // Fallback for easy testing: Alert the code and open verification modal
+            alert(`[TESTING OTP CODE]: Your verification code is: ${otp}`);
+            setOtpModalOpen(true);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Verify OTP and complete account creation
+    const handleVerifyAndRegister = async (e) => {
+        e.preventDefault();
+        setError("");
+        if (enteredOtp !== generatedOtp) {
+            return setError("Invalid OTP code. Please check your email.");
+        }
+
+        setVerifying(true);
         try {
             const res = await api.post("/auth/register/freelancer", form);
             if (res.data.success) {
-                setSuccess("Account created! Redirecting to login…");
+                setOtpModalOpen(false);
+                setSuccess("Account verified and created successfully! Redirecting to login…");
                 setTimeout(() => navigate("/freelancer/login"), 1500);
-            } else setError(res.data.message);
+            } else {
+                setError(res.data.message);
+            }
         } catch (err) {
             setError(err.response?.data?.message || "Registration failed");
-        } finally { setLoading(false); }
+        } finally {
+            setVerifying(false);
+        }
     };
 
-    const GradientBtn = ({ children, disabled }) => (
+    const GradientBtn = ({ children, disabled, onClick }) => (
         <button
-            type="submit"
+            type={onClick ? "button" : "submit"}
+            onClick={onClick}
             disabled={disabled}
             style={{
                 width: "100%", padding: "14px 24px", borderRadius: 999, border: "none",
@@ -99,6 +156,36 @@ function FreelancerRegister() {
                 <p className="auth-links">Already have an account? <Link to="/freelancer/login">Log in</Link></p>
                 <a className="back-link" href="/">← Back to home</a>
             </div>
+
+            {/* OTP Verification Modal */}
+            {otpModalOpen && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.75)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+                    <div style={{ width: '100%', maxWidth: 420, background: '#0a0d1a', borderRadius: 16, border: '1px solid var(--border-strong)', padding: 32, textAlign: 'center', boxShadow: '0 24px 60px rgba(0,0,0,.6)' }}>
+                        <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Verify Your Email</h3>
+                        <p style={{ color: 'var(--text-dim)', fontSize: 14, marginBottom: 24 }}>We've sent a 6-digit verification code to <br/><strong style={{ color: 'var(--cyan)' }}>{form.email}</strong></p>
+                        
+                        <form onSubmit={handleVerifyAndRegister} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                            <input 
+                                type="text"
+                                maxLength={6}
+                                required
+                                value={enteredOtp}
+                                onChange={e => setEnteredOtp(e.target.value.replace(/\D/g, ''))}
+                                placeholder="Enter 6-digit Code"
+                                style={{ width: '100%', padding: '14px 18px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'rgba(255,255,255,.02)', color: '#fff', fontSize: 18, textAlign: 'center', letterSpacing: 4, fontFamily: 'var(--font-mono)', outline: 'none' }}
+                            />
+                            {error && <div style={{ color: 'var(--danger)', fontSize: 13, fontWeight: 600 }}>{error}</div>}
+                            
+                            <div style={{ display: 'flex', gap: 12 }}>
+                                <button type="button" onClick={() => setOtpModalOpen(false)} style={{ flex: 1, padding: '12px 20px', borderRadius: 999, border: '1px solid var(--border-strong)', background: 'transparent', color: 'var(--text-dim)', fontSize: 14, cursor: 'pointer' }}>Cancel</button>
+                                <button type="submit" disabled={verifying || enteredOtp.length !== 6} style={{ flex: 1, padding: '12px 20px', borderRadius: 999, border: 'none', background: enteredOtp.length === 6 && !verifying ? 'linear-gradient(90deg,#2fd8ee,#8b6bf5)' : 'rgba(255,255,255,.05)', color: enteredOtp.length === 6 && !verifying ? '#04070d' : 'var(--text-faint)', fontWeight: 700, fontSize: 14, cursor: enteredOtp.length === 6 && !verifying ? 'pointer' : 'not-allowed' }}>
+                                    {verifying ? 'Verifying…' : 'Verify & Sign Up'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
