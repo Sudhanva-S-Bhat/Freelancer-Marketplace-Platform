@@ -20,7 +20,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/freelancing/$1"
+      "destination": "/freelancing/index.html"
     }
   ]
 }
