@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileText, DollarSign, Clock, CheckCircle, XCircle, AlertCircle, Send, X, Pencil } from 'lucide-react';
+import { FileText, DollarSign, Clock, CheckCircle, XCircle, AlertCircle, Send, X, Pencil, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosInstance';
 import '../../styles/dashboard.css';
@@ -195,16 +195,39 @@ function FreelancerBids() {
                                     </div>
                                 </div>
 
-                                {/* Edit button — for pending and rejected bids */}
-                                {(proposal.status === 'pending' || proposal.status === 'rejected') && (
-                                    <button onClick={() => setEditTarget(proposal)}
-                                        style={{ padding: '10px 20px', borderRadius: 999, border: '1px solid rgba(139,107,245,.35)', background: 'rgba(139,107,245,.08)', color: 'var(--violet)', fontWeight: 600, fontSize: 13.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-body)', transition: 'background .2s', flexShrink: 0 }}
-                                        onMouseOver={e => e.currentTarget.style.background = 'rgba(139,107,245,.18)'}
-                                        onMouseOut={e => e.currentTarget.style.background = 'rgba(139,107,245,.08)'}
-                                    >
-                                        <Pencil size={14} /> Edit Bid
-                                    </button>
-                                )}
+                                {/* Action Button Group */}
+                                <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+                                    {/* Message Client button */}
+                                    {proposal.project?.client && (
+                                        <button onClick={() => navigate('/freelancer/messages', {
+                                            state: {
+                                                initialActiveConv: {
+                                                    projectId: proposal.project._id,
+                                                    projectTitle: proposal.project.title,
+                                                    otherUserId: proposal.project.client._id,
+                                                    otherUserName: proposal.project.client.fullName || 'Client'
+                                                }
+                                            }
+                                        })}
+                                            style={{ padding: '10px 20px', borderRadius: 999, border: '1px solid rgba(47,216,238,.35)', background: 'rgba(47,216,238,.08)', color: 'var(--cyan)', fontWeight: 600, fontSize: 13.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-body)', transition: 'background .2s' }}
+                                            onMouseOver={e => e.currentTarget.style.background = 'rgba(47,216,238,.18)'}
+                                            onMouseOut={e => e.currentTarget.style.background = 'rgba(47,216,238,.08)'}
+                                        >
+                                            <MessageSquare size={14} /> Message Client
+                                        </button>
+                                    )}
+
+                                    {/* Edit button — for pending and rejected bids */}
+                                    {(proposal.status === 'pending' || proposal.status === 'rejected') && (
+                                        <button onClick={() => setEditTarget(proposal)}
+                                            style={{ padding: '10px 20px', borderRadius: 999, border: '1px solid rgba(139,107,245,.35)', background: 'rgba(139,107,245,.08)', color: 'var(--violet)', fontWeight: 600, fontSize: 13.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-body)', transition: 'background .2s' }}
+                                            onMouseOver={e => e.currentTarget.style.background = 'rgba(139,107,245,.18)'}
+                                            onMouseOut={e => e.currentTarget.style.background = 'rgba(139,107,245,.08)'}
+                                        >
+                                            <Pencil size={14} /> Edit Bid
+                                        </button>
+                                    )}
+                                </div>
 
                             </motion.div>
                         );

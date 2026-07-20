@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Send, MessageSquare } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import api from '../../api/axiosInstance';
 import '../../styles/dashboard.css';
 
@@ -23,13 +24,37 @@ export default function ChatInterface({ currentUserRole }) {
     const [sending,       setSending]       = useState(false);
     const messagesEndRef = useRef(null);
 
+    const location = useLocation();
+    const initTarget = location.state?.initialActiveConv; // { otherUserId, otherUserName, projectId, projectTitle }
+
     /* ── fetch helpers (useCallback to avoid stale closures) ── */
     const fetchConversations = useCallback(async () => {
         try {
             const res = await api.get('/messages/conversations');
-            if (res.data.success) { setConversations(res.data.conversations); setLoading(false); }
+            if (res.data.success) { 
+                const list = res.data.conversations;
+                setConversations(list); 
+                setLoading(false); 
+
+                // Auto select or append initial target conversation if passed in navigation state
+                if (initTarget) {
+                    const match = list.find(c => c.projectId === initTarget.projectId && c.otherUserId === initTarget.otherUserId);
+                    if (match) {
+                        setActiveConv(match);
+                    } else {
+                        // Create a temporary conversation object to start chat
+                        const newConv = {
+                            projectId: initTarget.projectId,
+                            projectTitle: initTarget.projectTitle || 'Project Conversation',
+                            otherUserId: initTarget.otherUserId,
+                            otherUserName: initTarget.otherUserName || 'Client',
+                        };
+                        setActiveConv(newConv);
+                    }
+                }
+            }
         } catch (err) { console.error('fetchConversations', err); setLoading(false); }
-    }, []);
+    }, [initTarget]);
 
     const fetchMessages = useCallback(async (conv) => {
         if (!conv) return;
