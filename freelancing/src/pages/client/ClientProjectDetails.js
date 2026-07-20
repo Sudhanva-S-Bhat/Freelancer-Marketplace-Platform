@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
     Briefcase, ArrowLeft, CheckCircle, XCircle,
     DollarSign, Calendar, Star, Users, Clock,
-    MessageSquare, Send, X
+    MessageSquare, Send, X, ExternalLink, Activity
 } from "lucide-react";
 import api from "../../api/axiosInstance";
 import { motion, AnimatePresence } from "framer-motion";
@@ -254,10 +254,24 @@ function ClientProjectDetails() {
             const res = await api.put(`/proposals/${proposalId}/status`, { status });
             if (res.data.success) {
                 setProposals(prev => prev.map(p => p._id === proposalId ? { ...p, status } : p));
-                if (status === "accepted") setProject(p => ({ ...p, status: "In Progress" }));
+                if (status === "accepted") setProject(p => ({ ...p, status: "In Progress", paymentStatus: "Escrow" }));
             }
         } catch { alert("Failed to update proposal."); }
         finally { setActionId(null); }
+    };
+
+    const handleCompleteProject = async () => {
+        if (!window.confirm("Are you sure you want to complete this project? This will release the payment to the freelancer.")) return;
+        
+        try {
+            const res = await api.post(`/projects/${project._id}/complete`);
+            if (res.data.success) {
+                setProject(p => ({ ...p, status: "Completed", paymentStatus: "Paid" }));
+                alert("Project completed successfully and payment released!");
+            }
+        } catch (err) {
+            alert(err.response?.data?.message || "Failed to complete project");
+        }
     };
 
     if (loading) return (
@@ -305,7 +319,14 @@ function ClientProjectDetails() {
                             <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-.03em", margin: 0, background: "linear-gradient(135deg,#fff 60%,rgba(255,255,255,.55))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                                 {project.title}
                             </h1>
-                            <StatusBadge label={project.status} map={statusColor} />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+                                <StatusBadge label={project.status} map={statusColor} />
+                                {project.paymentStatus && (
+                                    <span style={{ fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 99, background: "rgba(255,255,255,.05)", border: "1px solid var(--border-strong)", color: "var(--text-dim)", textTransform: "uppercase" }}>
+                                        Payment: {project.paymentStatus}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                         <p style={{ color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 28, fontSize: 14.5 }}>{project.description}</p>
                         {project.requiredSkills?.length > 0 && (
@@ -351,6 +372,56 @@ function ClientProjectDetails() {
                         </div>
                     </div>
                 </div>
+
+                {/* Progress Updates (if any) */}
+                {(project.progressUpdates?.length > 0 || project.status === "In Progress") && (
+                    <div style={{ marginTop: 24, marginBottom: 24 }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                <h2 style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-.02em" }}>Progress Updates</h2>
+                                <Activity size={18} style={{ color: "var(--cyan)" }} />
+                            </div>
+                            {project.status === "In Progress" && (
+                                <button onClick={handleCompleteProject} style={{
+                                    padding: "10px 20px", borderRadius: 999, border: "none",
+                                    background: "linear-gradient(90deg,var(--ok),#2fd8ee)", color: "#04070d",
+                                    fontWeight: 700, fontSize: 13.5, cursor: "pointer", display: "flex", alignItems: "center", gap: 7,
+                                    fontFamily: "var(--font-body)", transition: "box-shadow .25s"
+                                }}>
+                                    <CheckCircle size={15} /> Complete Project & Release Payment
+                                </button>
+                            )}
+                        </div>
+
+                        {project.progressUpdates?.length === 0 ? (
+                            <div className="dashboard-card" style={{ padding: "40px 24px", textAlign: "center" }}>
+                                <p style={{ color: "var(--text-dim)", fontSize: 14 }}>No progress updates submitted by the freelancer yet.</p>
+                            </div>
+                        ) : (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                                {project.progressUpdates?.map((update, i) => (
+                                    <div key={i} className="dashboard-card" style={{ padding: "24px", display: "flex", gap: 20 }}>
+                                        <div style={{ width: 2, background: "var(--cyan)", borderRadius: 2 }} />
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+                                                <span style={{ color: "var(--text-dim)", fontSize: 13 }}>Update #{i + 1}</span>
+                                                <span style={{ color: "var(--text-faint)", fontSize: 13, fontFamily: "var(--font-mono)" }}>
+                                                    {new Date(update.date).toLocaleString()}
+                                                </span>
+                                            </div>
+                                            <p style={{ margin: "0 0 16px 0", color: "var(--text)", lineHeight: 1.6 }}>{update.text}</p>
+                                            {update.fileLink && (
+                                                <a href={update.fileLink} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--cyan)", fontSize: 13, textDecoration: "none", padding: "6px 12px", background: "rgba(47,216,238,.08)", borderRadius: 99, border: "1px solid rgba(47,216,238,.2)" }}>
+                                                    <ExternalLink size={14} /> View Deliverable
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Proposals */}
                 <div>

@@ -205,9 +205,10 @@ const DashboardLayout = ({ role }) => {
 
   const freelancerLinks = [
     { name: 'Dashboard',       path: '/freelancer/dashboard',       icon: LayoutDashboard },
-    { name: 'Browse Projects', path: '/freelancer/browse-projects', icon: Briefcase       },
-    { name: 'My Bids',         path: '/freelancer/my-bids',         icon: FileText        },
-    { name: 'Messages',        path: '/freelancer/messages',        icon: MessageSquare   },
+    { name: 'Find Work',    path: '/freelancer/browse-projects', icon: Search          },
+    { name: 'My Bids',      path: '/freelancer/bids',            icon: Clock           },
+    { name: 'My Contracts', path: '/freelancer/contracts',       icon: Briefcase       },
+    { name: 'Messages',     path: '/freelancer/messages',        icon: MessageSquare   },
     { name: 'Edit Profile',    path: '/freelancer/edit-profile',    icon: UserCog         },
   ];
 

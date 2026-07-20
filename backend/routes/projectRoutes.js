@@ -13,6 +13,9 @@ router.post('/', verifyToken, requireRole('CLIENT'), projectController.createPro
 router.put('/:id', verifyToken, requireRole('CLIENT'), projectController.updateProject);
 router.delete('/:id', verifyToken, requireRole('CLIENT'), projectController.deleteProject);
 
+router.post('/:id/progress', verifyToken, requireRole('FREELANCER'), projectController.addProgressUpdate);
+router.post('/:id/complete', verifyToken, requireRole('CLIENT'), projectController.completeProject);
+
 // Generic single project route (LAST to avoid swallowing named routes)
 router.get('/:id', projectController.getSingleProject);
 

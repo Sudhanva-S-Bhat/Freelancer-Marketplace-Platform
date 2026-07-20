@@ -104,3 +104,56 @@ exports.deleteProject = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error while deleting project' });
   }
 };
+
+// Add a progress update to a project (Freelancer only)
+exports.addProgressUpdate = async (req, res) => {
+  try {
+    const { text, fileLink } = req.body;
+    const project = await Project.findById(req.params.id);
+
+    if (!project) {
+      return res.status(404).json({ success: false, message: 'Project not found' });
+    }
+
+    // Verify it's in progress
+    if (project.status !== 'In Progress' && project.status !== 'Completed') {
+      return res.status(400).json({ success: false, message: 'Can only add updates to active projects' });
+    }
+
+    project.progressUpdates.push({
+      text,
+      fileLink,
+      freelancerId: req.user._id,
+      date: new Date()
+    });
+
+    await project.save();
+    res.status(200).json({ success: true, message: 'Progress update added', project });
+  } catch (error) {
+    console.error('Error adding progress update:', error);
+    res.status(500).json({ success: false, message: 'Server error while adding update' });
+  }
+};
+
+// Mark project as completed (Client only)
+exports.completeProject = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+
+    if (!project) {
+      return res.status(404).json({ success: false, message: 'Project not found' });
+    }
+
+    if (project.clientId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized to complete this project' });
+    }
+
+    project.status = 'Completed';
+    project.paymentStatus = 'Paid';
+    await project.save();
+    res.status(200).json({ success: true, message: 'Project marked as completed and payment released', project });
+  } catch (error) {
+    console.error('Error completing project:', error);
+    res.status(500).json({ success: false, message: 'Server error while completing project' });
+  }
+};

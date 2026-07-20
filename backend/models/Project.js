@@ -46,6 +46,17 @@ const ProjectSchema = new mongoose.Schema(
       enum: ['Open', 'In Progress', 'Completed', 'Cancelled'],
       default: 'Open',
     },
+    paymentStatus: {
+      type: String,
+      enum: ['Unpaid', 'Escrow', 'Paid'],
+      default: 'Unpaid',
+    },
+    progressUpdates: [{
+      text: String,
+      fileLink: String,
+      date: { type: Date, default: Date.now },
+      freelancerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    }],
   },
   {
     timestamps: true,

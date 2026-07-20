@@ -30,6 +30,7 @@ import FreelancerBrowseProjects from "./pages/freelancer/FreelancerBrowseProject
 import FreelancerBids from "./pages/freelancer/FreelancerBids";
 import FreelancerMessages from "./pages/freelancer/FreelancerMessages";
 import FreelancerEditProfile from "./pages/freelancer/FreelancerEditProfile";
+import FreelancerContracts from "./pages/freelancer/FreelancerContracts";
 
 // Aurora background — copied from lumina.html
 function AuroraBackground() {
@@ -218,9 +219,10 @@ function App() {
                         <Route index element={<Navigate to="dashboard" replace />} />
                         <Route path="dashboard" element={<FreelancerDashboard />} />
                         <Route path="browse-projects" element={<FreelancerBrowseProjects />} />
-                        <Route path="my-bids" element={<FreelancerBids />} />
+                        <Route path="bids" element={<FreelancerBids />} />
                         <Route path="messages" element={<FreelancerMessages />} />
                         <Route path="edit-profile" element={<FreelancerEditProfile />} />
+                        <Route path="contracts" element={<FreelancerContracts />} />
                     </Route>
 
                     {/* Catch-all */}

@@ -53,6 +53,29 @@ exports.getMyProposals = async (req, res) => {
   }
 };
 
+// Freelancer: Get active/completed contracts
+exports.getMyContracts = async (req, res) => {
+  try {
+    const freelancerId = req.user._id;
+    const proposals = await Proposal.find({ 
+      freelancer: freelancerId, 
+      status: 'accepted' 
+    })
+      .populate({
+        path: 'project',
+        populate: {
+          path: 'clientId',
+          select: 'fullName username'
+        }
+      })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, contracts: proposals });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
 // Client: Get all proposals for a specific project
 exports.getProjectProposals = async (req, res) => {
   try {
@@ -102,9 +125,10 @@ exports.updateProposalStatus = async (req, res) => {
     proposal.status = status;
     await proposal.save();
 
-    // If accepted, update the project status to 'In Progress'
+    // If accepted, update the project status to 'In Progress' and payment to 'Escrow'
     if (status === 'accepted') {
       proposal.project.status = 'In Progress';
+      proposal.project.paymentStatus = 'Escrow';
       await proposal.project.save();
     }
 

@@ -10,6 +10,7 @@ const clientOnly = [verifyToken, requireRole('CLIENT')];
 // Freelancer Routes
 router.post('/submit', freelancerOnly, proposalController.submitProposal);
 router.get('/my-proposals', freelancerOnly, proposalController.getMyProposals);
+router.get('/my-contracts', freelancerOnly, proposalController.getMyContracts);
 
 // Client Routes
 router.get('/project/:projectId', clientOnly, proposalController.getProjectProposals);
