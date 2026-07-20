@@ -82,7 +82,8 @@ function FreelancerRegister() {
                 setError(res.data.message);
             }
         } catch (err) {
-            setError(err.response?.data?.message || "Registration failed");
+            const serverError = err.response?.data?.error || err.response?.data?.message || "Registration failed";
+            setError(serverError);
         } finally {
             setVerifying(false);
         }
