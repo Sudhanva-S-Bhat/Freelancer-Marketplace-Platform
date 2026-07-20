@@ -99,7 +99,10 @@ function FreelancerRegister() {
                 setError(res.data.message);
             }
         } catch (err) {
-            const serverError = err.response?.data?.error || err.response?.data?.message || "Registration failed";
+            let serverError = err.response?.data?.error || err.response?.data?.message || "Registration failed";
+            if (typeof serverError === "object") {
+                serverError = serverError.message || JSON.stringify(serverError);
+            }
             setError(serverError);
         } finally {
             setVerifying(false);
