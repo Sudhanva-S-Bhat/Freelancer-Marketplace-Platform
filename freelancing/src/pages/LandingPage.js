@@ -44,7 +44,7 @@ const LandingPage = () => {
       <nav className="landing-nav">
         <div className="nav-container">
           <div className="nav-logo" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <Sparkles size={28} color="var(--primary)" />
+            <img src="/logo.png" alt="Lumina" style={{ width: 32, height: 32, objectFit: 'contain' }} />
             <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Lumina</span>
           </div>
           <div className="nav-links">

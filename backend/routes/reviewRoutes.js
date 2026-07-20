@@ -4,14 +4,14 @@ const reviewCtrl = require('../controllers/reviewController');
 const verifyToken  = require('../middleware/authMiddleware');
 const requireRole  = require('../middleware/roleMiddleware');
 
-const clientOnly     = [verifyToken, requireRole('CLIENT')];
-const anyAuth        = [verifyToken];
+const anyAuth    = [verifyToken];
+const clientOnly = [verifyToken, requireRole('CLIENT')];
 
-// Client submits a review
-router.post('/submit',                  clientOnly, reviewCtrl.submitReview);
-// Check if client already reviewed a project
-router.get('/check/:projectId',         clientOnly, reviewCtrl.checkReview);
-// Get all reviews for a freelancer (public — any logged in user)
-router.get('/freelancer/:freelancerId', anyAuth,    reviewCtrl.getFreelancerReviews);
+// Both CLIENT and FREELANCER can submit (controller handles role check)
+router.post('/submit',               anyAuth,    reviewCtrl.submitReview);
+// Check if current user already reviewed a project
+router.get('/check/:projectId',      anyAuth,    reviewCtrl.checkReview);
+// Get all reviews for any user (shown on profile, bids, etc.)
+router.get('/user/:userId',          anyAuth,    reviewCtrl.getUserReviews);
 
 module.exports = router;

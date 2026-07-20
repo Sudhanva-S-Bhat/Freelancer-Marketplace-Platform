@@ -22,6 +22,28 @@ const proposalColor = {
     pending:  { color: "var(--warn)",   bg: "rgba(245,185,92,.1)",  border: "rgba(245,185,92,.3)"  },
 };
 
+/* ── Star Badge (inline rating display) ─────── */
+const StarBadge = ({ avg, total }) => {
+    if (!avg) {
+        // No reviews yet — show 5 empty blue stars
+        return (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                {[1,2,3,4,5].map(n => (
+                    <Star key={n} size={13} fill="none" color="var(--cyan)" strokeWidth={1.5} />
+                ))}
+                <span style={{ fontSize: 11, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)', marginLeft: 4 }}>New</span>
+            </span>
+        );
+    }
+    return (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 9px', borderRadius: 99, background: 'rgba(245,185,92,.1)', border: '1px solid rgba(245,185,92,.25)', fontSize: 12, fontWeight: 700, color: '#f5b93c', fontFamily: 'var(--font-mono)' }}>
+            <Star size={11} fill="#f5b93c" color="#f5b93c" />
+            {avg} <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>({total})</span>
+        </span>
+    );
+};
+
+
 const StatusBadge = ({ label, map }) => {
     const c = (map[label] || map["pending"]);
     return (
@@ -37,6 +59,7 @@ const StatusBadge = ({ label, map }) => {
         </span>
     );
 };
+
 
 const MetaStat = ({ icon: Icon, label, value, accent }) => (
     <div style={{
@@ -347,7 +370,8 @@ function ClientProjectDetails() {
     const [actionId,   setActionId]   = useState(null);
     const [msgTarget,  setMsgTarget]  = useState(null);
     const [reviewOpen, setReviewOpen] = useState(false);
-    const [hasReviewed,setHasReviewed]= useState(false);
+    const [hasReviewed, setHasReviewed] = useState(false);
+    const [ratings, setRatings] = useState({}); // freelancerId → { avg, total }
 
     useEffect(() => {
         (async () => {
@@ -357,7 +381,21 @@ function ClientProjectDetails() {
                     api.get(`/proposals/project/${id}`)
                 ]);
                 if (pRes.data.success)    setProject(pRes.data.project);
-                if (propRes.data.success) setProposals(propRes.data.proposals);
+                if (propRes.data.success) {
+                    const props = propRes.data.proposals;
+                    setProposals(props);
+                    // Fetch ratings for all freelancers in parallel
+                    const freelancerIds = [...new Set(props.map(p => p.freelancer?._id).filter(Boolean))];
+                    const ratingResults = await Promise.all(
+                        freelancerIds.map(fid => api.get(`/reviews/user/${fid}`).catch(() => null))
+                    );
+                    const ratingMap = {};
+                    freelancerIds.forEach((fid, idx) => {
+                        const data = ratingResults[idx]?.data;
+                        if (data?.averageRating) ratingMap[fid] = { avg: data.averageRating, total: data.totalReviews };
+                    });
+                    setRatings(ratingMap);
+                }
                 // Check if already reviewed
                 const revRes = await api.get(`/reviews/check/${id}`).catch(() => null);
                 if (revRes?.data?.hasReviewed) setHasReviewed(true);
@@ -608,6 +646,8 @@ function ClientProjectDetails() {
                                                         )}
                                                     </div>
                                                     <StatusBadge label={proposal.status} map={proposalColor} />
+                                                    {/* Star rating */}
+                                                    <StarBadge avg={ratings[proposal.freelancer?._id]?.avg} total={ratings[proposal.freelancer?._id]?.total} />
                                                 </div>
                                                 <p style={{ color: "var(--text-dim)", fontSize: 14, lineHeight: 1.7, marginBottom: 16 }}>{proposal.coverLetter}</p>
                                                 <div style={{ display: "flex", gap: 12 }}>
