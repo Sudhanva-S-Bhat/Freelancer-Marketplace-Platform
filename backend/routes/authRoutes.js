@@ -5,6 +5,7 @@ const verifyToken = require('../middleware/authMiddleware');
 
 router.post('/register/client', authController.registerClient);
 router.post('/register/freelancer', authController.registerFreelancer);
+router.post('/check-exists', authController.checkExists);
 
 router.post('/login/client', authController.loginClient);
 router.post('/login/freelancer', authController.loginFreelancer);

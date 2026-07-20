@@ -112,6 +112,25 @@ function login(role) {
   };
 }
 
+async function checkExists(req, res) {
+  try {
+    const { email, username } = req.body;
+    if (!email || !username) {
+      return res.status(400).json({ success: false, message: 'Email and username are required' });
+    }
+    const existingUser = await User.findOne({
+      $or: [{ email: email.toLowerCase() }, { username: username.toLowerCase() }],
+    });
+    if (existingUser) {
+      const field = existingUser.email === email.toLowerCase() ? 'Email' : 'Username';
+      return res.status(409).json({ success: false, message: `${field} is already in use` });
+    }
+    return res.json({ success: true, message: 'Details are available' });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Validation failed', error: err.message });
+  }
+}
+
 async function me(req, res) {
   return res.json({ success: true, user: req.user });
 }
@@ -126,6 +145,7 @@ module.exports = {
   registerFreelancer: register('FREELANCER'),
   loginClient: login('CLIENT'),
   loginFreelancer: login('FREELANCER'),
+  checkExists,
   me,
   logout,
 };
