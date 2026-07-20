@@ -480,7 +480,7 @@ function StripePaymentModal({ amount, freelancerName, contractId, onClose }) {
                 const rzpObj = new window.Razorpay(rzpOptions);
                 rzpObj.open();
             } catch (err) {
-                console.error(rzp);
+                console.error(err);
                 alert(err.response?.data?.message || 'Error initializing Razorpay payment.');
                 setProcessing(false);
             }
