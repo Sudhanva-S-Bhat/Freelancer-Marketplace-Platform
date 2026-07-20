@@ -125,14 +125,54 @@ exports.updateProposalStatus = async (req, res) => {
     proposal.status = status;
     await proposal.save();
 
-    // If accepted, update the project status to 'In Progress' and payment to 'Escrow'
+    // When accepted, move the project to In Progress
     if (status === 'accepted') {
       proposal.project.status = 'In Progress';
       proposal.project.paymentStatus = 'Escrow';
       await proposal.project.save();
+
+      // Send the freelancer a message so it shows up in their inbox and contracts
+      await Message.create({
+        sender:   clientId,
+        receiver: proposal.freelancer,
+        project:  proposal.project._id,
+        content:  `🎉 Congratulations! Your bid on "${proposal.project.title}" has been accepted. You can now start working on the project.`,
+      });
     }
 
     res.status(200).json({ success: true, message: `Proposal ${status}`, proposal });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
+// Freelancer: Edit a pending proposal
+exports.editProposal = async (req, res) => {
+  try {
+    const { proposalId } = req.params;
+    const { coverLetter, bidAmount, estimatedTime } = req.body;
+    const freelancerId = req.user._id;
+
+    const proposal = await Proposal.findById(proposalId);
+    if (!proposal) return res.status(404).json({ success: false, message: 'Proposal not found' });
+
+    // Make sure it belongs to this freelancer
+    if (proposal.freelancer.toString() !== freelancerId.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    // Only pending proposals can be edited
+    if (proposal.status !== 'pending') {
+      return res.status(400).json({ success: false, message: 'Only pending proposals can be edited' });
+    }
+
+    if (coverLetter)   proposal.coverLetter   = coverLetter;
+    if (bidAmount)     proposal.bidAmount     = bidAmount;
+    if (estimatedTime) proposal.estimatedTime = estimatedTime;
+
+    await proposal.save();
+
+    res.json({ success: true, message: 'Proposal updated', proposal });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
