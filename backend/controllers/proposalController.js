@@ -1,5 +1,6 @@
 const Proposal = require('../models/Proposal');
 const Project = require('../models/Project');
+const Message = require('../models/Message');
 
 // Freelancer: Submit a new proposal
 exports.submitProposal = async (req, res) => {
@@ -125,11 +126,19 @@ exports.updateProposalStatus = async (req, res) => {
     proposal.status = status;
     await proposal.save();
 
-    // If accepted, update the project status to 'In Progress' and payment to 'Escrow'
+    // When accepted, move the project to In Progress
     if (status === 'accepted') {
       proposal.project.status = 'In Progress';
       proposal.project.paymentStatus = 'Escrow';
       await proposal.project.save();
+
+      // Send the freelancer a message so it shows up in their inbox and contracts
+      await Message.create({
+        sender:   clientId,
+        receiver: proposal.freelancer,
+        project:  proposal.project._id,
+        content:  `🎉 Congratulations! Your bid on "${proposal.project.title}" has been accepted. You can now start working on the project.`,
+      });
     }
 
     res.status(200).json({ success: true, message: `Proposal ${status}`, proposal });
