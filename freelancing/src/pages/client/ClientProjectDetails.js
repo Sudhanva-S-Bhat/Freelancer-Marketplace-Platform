@@ -223,16 +223,131 @@ function MessageModal({ project, freelancer, onClose }) {
     );
 }
 
+/* ── Star Rating Input ───────────────────── */
+function StarRating({ value, onChange }) {
+    const [hovered, setHovered] = useState(null);
+    return (
+        <div style={{ display: 'flex', gap: 6 }}>
+            {[1,2,3,4,5].map(n => (
+                <button key={n} type="button"
+                    onClick={() => onChange(n)}
+                    onMouseEnter={() => setHovered(n)}
+                    onMouseLeave={() => setHovered(null)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, transition: 'transform .15s' }}
+                    onMouseOver={e => e.currentTarget.style.transform = 'scale(1.2)'}
+                    onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                    <Star size={28}
+                        fill={(hovered || value) >= n ? '#f5b93c' : 'none'}
+                        color={(hovered || value) >= n ? '#f5b93c' : 'var(--border-strong)'}
+                    />
+                </button>
+            ))}
+        </div>
+    );
+}
+
+/* ── Review Modal ───────────────────────── */
+function ReviewModal({ project, onClose, onSubmitted }) {
+    const [rating,  setRating]  = useState(0);
+    const [comment, setComment] = useState('');
+    const [saving,  setSaving]  = useState(false);
+    const [done,    setDone]    = useState(false);
+    const [error,   setError]   = useState('');
+
+    useEffect(() => {
+        const h = e => { if (e.key === 'Escape') onClose(); };
+        window.addEventListener('keydown', h);
+        return () => window.removeEventListener('keydown', h);
+    }, [onClose]);
+
+    const handleSubmit = async e => {
+        e.preventDefault();
+        if (!rating) return setError('Please select a star rating.');
+        setSaving(true); setError('');
+        try {
+            const res = await api.post('/reviews/submit', { projectId: project._id, rating, comment });
+            if (res.data.success) { setDone(true); onSubmitted && onSubmitted(); }
+        } catch (err) { setError(err.response?.data?.message || 'Failed to submit.'); }
+        finally { setSaving(false); }
+    };
+
+    return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={onClose}
+            style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+        >
+            <motion.div initial={{ opacity: 0, scale: .92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: .92, y: 20 }}
+                transition={{ ease: [.16,.84,.44,1], duration: .3 }}
+                onClick={e => e.stopPropagation()}
+                style={{ width: '100%', maxWidth: 480, background: 'linear-gradient(135deg,rgba(13,17,32,.98),rgba(8,11,20,1))', borderRadius: 'var(--r-xl)', border: '1px solid var(--border-strong)', boxShadow: '0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(245,185,92,.1)', overflow: 'hidden' }}
+            >
+                <div style={{ position: 'absolute', top: 0, left: '15%', right: '15%', height: 1, background: 'linear-gradient(90deg,transparent,rgba(245,185,92,.4),transparent)', pointerEvents: 'none' }} />
+
+                <div style={{ padding: '22px 26px 18px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                        <p style={{ fontWeight: 700, fontSize: 15, margin: 0 }}>Rate the Freelancer</p>
+                        <p style={{ color: 'var(--warn)', fontSize: 12, margin: 0, fontFamily: 'var(--font-mono)' }}>{project.title}</p>
+                    </div>
+                    <button onClick={onClose} style={{ background: 'rgba(255,255,255,.05)', border: '1px solid var(--border-strong)', color: 'var(--text-dim)', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                        <X size={14} />
+                    </button>
+                </div>
+
+                <div style={{ padding: '26px 26px 22px' }}>
+                    {done ? (
+                        <motion.div initial={{ opacity: 0, scale: .9 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: 'center', padding: '20px 0' }}>
+                            <div style={{ fontSize: 48, marginBottom: 14 }}>⭐</div>
+                            <p style={{ fontWeight: 700, fontSize: 16, marginBottom: 8 }}>Review Submitted!</p>
+                            <p style={{ color: 'var(--text-dim)', fontSize: 14 }}>Thank you for your feedback.</p>
+                            <button onClick={onClose} style={{ marginTop: 20, padding: '10px 24px', borderRadius: 999, border: 'none', background: 'linear-gradient(90deg,var(--warn),var(--cyan))', color: '#04070d', fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>Close</button>
+                        </motion.div>
+                    ) : (
+                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                            {error && <div className="error-banner">{error}</div>}
+
+                            <div style={{ textAlign: 'center' }}>
+                                <p style={{ color: 'var(--text-dim)', fontSize: 13.5, marginBottom: 14 }}>How was your experience with this freelancer?</p>
+                                <StarRating value={rating} onChange={setRating} />
+                                <p style={{ color: 'var(--warn)', fontSize: 13, marginTop: 10, fontWeight: 600 }}>
+                                    {rating === 1 ? 'Poor' : rating === 2 ? 'Fair' : rating === 3 ? 'Good' : rating === 4 ? 'Very Good' : rating === 5 ? 'Excellent!' : ''}
+                                </p>
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Review (optional)</label>
+                                <textarea rows={3} value={comment} onChange={e => setComment(e.target.value)}
+                                    placeholder="Share your experience working with this freelancer…"
+                                    style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: '1px solid var(--border-strong)', background: 'rgba(255,255,255,.04)', color: 'var(--text)', fontSize: 14, resize: 'vertical', fontFamily: 'var(--font-body)', outline: 'none', boxSizing: 'border-box' }}
+                                />
+                            </div>
+
+                            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                                <button type="button" onClick={onClose} style={{ padding: '10px 20px', borderRadius: 999, border: '1px solid var(--border-strong)', background: 'rgba(255,255,255,.03)', color: 'var(--text-dim)', fontSize: 13.5, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>Cancel</button>
+                                <button type="submit" disabled={saving || !rating} style={{ padding: '10px 22px', borderRadius: 999, border: 'none', background: rating ? 'linear-gradient(90deg,#f5b93c,var(--cyan))' : 'rgba(255,255,255,.06)', color: rating ? '#04070d' : 'var(--text-faint)', fontWeight: 700, fontSize: 13.5, cursor: rating && !saving ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-body)' }}>
+                                    {saving ? 'Submitting…' : <><Star size={14} /> Submit Review</>}
+                                </button>
+                            </div>
+                        </form>
+                    )}
+                </div>
+            </motion.div>
+        </motion.div>
+    );
+}
+
 /* ── Main Component ──────────────────────────── */
 function ClientProjectDetails() {
     const { id }     = useParams();
     const navigate   = useNavigate();
-    const [project,   setProject]   = useState(null);
-    const [proposals, setProposals] = useState([]);
-    const [loading,   setLoading]   = useState(true);
-    const [error,     setError]     = useState("");
-    const [actionId,  setActionId]  = useState(null);
-    const [msgTarget, setMsgTarget] = useState(null); // { userId, fullName }
+    const [project,    setProject]    = useState(null);
+    const [proposals,  setProposals]  = useState([]);
+    const [loading,    setLoading]    = useState(true);
+    const [error,      setError]      = useState("");
+    const [actionId,   setActionId]   = useState(null);
+    const [msgTarget,  setMsgTarget]  = useState(null);
+    const [reviewOpen, setReviewOpen] = useState(false);
+    const [hasReviewed,setHasReviewed]= useState(false);
 
     useEffect(() => {
         (async () => {
@@ -243,6 +358,9 @@ function ClientProjectDetails() {
                 ]);
                 if (pRes.data.success)    setProject(pRes.data.project);
                 if (propRes.data.success) setProposals(propRes.data.proposals);
+                // Check if already reviewed
+                const revRes = await api.get(`/reviews/check/${id}`).catch(() => null);
+                if (revRes?.data?.hasReviewed) setHasReviewed(true);
             } catch { setError("Failed to load project details."); }
             finally  { setLoading(false); }
         })();
@@ -294,8 +412,8 @@ function ClientProjectDetails() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: .4, ease: [.16,.84,.44,1] }}
             >
-                {/* Back */}
-                <div>
+                {/* Back + Rate button row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <button onClick={() => navigate("/client/my-projects")} style={{
                         display: "inline-flex", alignItems: "center", gap: 8,
                         padding: "9px 18px", borderRadius: 999,
@@ -309,6 +427,29 @@ function ClientProjectDetails() {
                     >
                         <ArrowLeft size={15} /> Back to Projects
                     </button>
+
+                    {/* Rate Freelancer — only for completed projects */}
+                    {project.status === 'Completed' && (
+                        hasReviewed ? (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px', borderRadius: 999, background: 'rgba(245,185,92,.08)', border: '1px solid rgba(245,185,92,.25)', color: 'var(--warn)', fontSize: 13.5, fontFamily: 'var(--font-body)' }}>
+                                <Star size={14} fill="#f5b93c" color="#f5b93c" /> Reviewed ✓
+                            </span>
+                        ) : (
+                            <button onClick={() => setReviewOpen(true)} style={{
+                                display: 'inline-flex', alignItems: 'center', gap: 8,
+                                padding: '9px 20px', borderRadius: 999,
+                                border: 'none', background: 'linear-gradient(90deg,#f5b93c,var(--cyan))',
+                                color: '#04070d', fontWeight: 700, fontSize: 13.5, cursor: 'pointer',
+                                fontFamily: 'var(--font-body)', boxShadow: '0 4px 16px rgba(245,185,92,.3)',
+                                transition: 'box-shadow .2s',
+                            }}
+                                onMouseOver={e => e.currentTarget.style.boxShadow = '0 8px 28px rgba(245,185,92,.5)'}
+                                onMouseOut={e => e.currentTarget.style.boxShadow = '0 4px 16px rgba(245,185,92,.3)'}
+                            >
+                                <Star size={15} /> Rate Freelancer
+                            </button>
+                        )
+                    )}
                 </div>
 
                 {/* Top row */}
@@ -534,6 +675,17 @@ function ClientProjectDetails() {
                         project={project}
                         freelancer={msgTarget}
                         onClose={() => setMsgTarget(null)}
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* Review Modal */}
+            <AnimatePresence>
+                {reviewOpen && (
+                    <ReviewModal
+                        project={project}
+                        onClose={() => setReviewOpen(false)}
+                        onSubmitted={() => setHasReviewed(true)}
                     />
                 )}
             </AnimatePresence>
