@@ -15,4 +15,10 @@ const reviewSchema = new mongoose.Schema(
 // One review per project per reviewer
 reviewSchema.index({ project: 1, reviewer: 1 }, { unique: true });
 
-module.exports = mongoose.model('Review', reviewSchema);
+// Drop the old index if it exists to prevent E11000 duplicate key error
+const Review = mongoose.model('Review', reviewSchema);
+Review.collection.dropIndex('project_1_client_1').catch(() => {
+  // Ignore if index doesn't exist
+});
+
+module.exports = Review;
