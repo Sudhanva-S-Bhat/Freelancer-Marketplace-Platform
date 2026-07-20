@@ -15,7 +15,21 @@ const messageRoutes = require('./routes/messageRoutes');
 const app = express();
 
 app.use(cors({
-  origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    // Allow specific production URL or localhost
+    const allowedOrigins = [
+      process.env.CLIENT_ORIGIN,
+      'http://localhost:3000'
+    ].filter(Boolean);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 
