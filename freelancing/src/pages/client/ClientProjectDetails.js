@@ -360,6 +360,7 @@ function ReviewModal({ project, onClose, onSubmitted }) {
 }
 /* ── Stripe Payment Overlay Modal ─────────── */
 function StripePaymentModal({ amount, freelancerName, contractId, onClose }) {
+    const [gateway,      setGateway]     = useState('razorpay'); // default to razorpay for local Indian payments
     const [cardNo,    setCardNo]    = useState('');
     const [expiry,    setExpiry]    = useState('');
     const [cvc,       setCvc]       = useState('');
@@ -379,23 +380,110 @@ function StripePaymentModal({ amount, freelancerName, contractId, onClose }) {
         return clear;
     };
 
+    // Load Razorpay Script Helper
+    const loadRazorpayScript = () => {
+        return new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
+            document.body.appendChild(script);
+        });
+    };
+
     const handlePay = async (e) => {
         e.preventDefault();
         setProcessing(true);
-        try {
-            // Call API to create Stripe Checkout session URL
-            const res = await api.post('/payments/create-checkout-session', { proposalId: contractId });
-            if (res.data.success && res.data.url) {
-                // Redirect user to real Stripe Checkout hosted payment page
-                window.location.href = res.data.url;
-            } else {
-                alert('Could not initiate checkout session.');
+
+        if (gateway === 'stripe') {
+            try {
+                // Call API to create Stripe Checkout session URL
+                const res = await api.post('/payments/create-checkout-session', { proposalId: contractId });
+                if (res.data.success && res.data.url) {
+                    window.location.href = res.data.url;
+                } else {
+                    alert('Could not initiate Stripe checkout session.');
+                    setProcessing(false);
+                }
+            } catch (err) {
+                console.error(err);
+                alert(err.response?.data?.message || 'Error redirecting to Stripe payment checkout.');
                 setProcessing(false);
             }
-        } catch (err) {
-            console.error(err);
-            alert(err.response?.data?.message || 'Error redirecting to Stripe payment checkout.');
-            setProcessing(false);
+        } else {
+            // Razorpay payment integration flow
+            try {
+                const isScriptLoaded = await loadRazorpayScript();
+                if (!isScriptLoaded) {
+                    alert('Failed to load Razorpay checkout script. Please check your internet connection.');
+                    setProcessing(false);
+                    return;
+                }
+
+                // 1. Create order on backend
+                const res = await api.post('/payments/razorpay-order', { proposalId: contractId });
+                if (!res.data.success) {
+                    alert('Failed to create Razorpay payment order.');
+                    setProcessing(false);
+                    return;
+                }
+
+                const { orderId, amount: rzpAmount, currency, keyId, projectId } = res.data;
+
+                // 2. Open Razorpay Checkout overlay options modal
+                const rzpOptions = {
+                    key: keyId,
+                    amount: rzpAmount,
+                    currency: currency,
+                    name: 'Lumina Escrow',
+                    description: `Escrow payment to freelancer ${freelancerName}`,
+                    order_id: orderId,
+                    handler: async (response) => {
+                        setProcessing(true);
+                        try {
+                            // 3. Verify signature on backend
+                            const verifyRes = await api.post('/payments/razorpay-confirm', {
+                                proposalId: contractId,
+                                projectId,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature
+                            });
+
+                            if (verifyRes.data.success) {
+                                alert('Payment verified successfully!');
+                                window.location.reload();
+                            } else {
+                                alert('Payment verification failed.');
+                            }
+                        } catch (err) {
+                            alert(err.response?.data?.message || 'Verification error occurred.');
+                        } finally {
+                            setProcessing(false);
+                        }
+                    },
+                    prefill: {
+                        name: '',
+                        email: '',
+                        contact: ''
+                    },
+                    theme: {
+                        color: '#635bff'
+                    },
+                    modal: {
+                        ondismiss: () => {
+                            setProcessing(false);
+                        }
+                    }
+                };
+
+                const rzpObj = new window.Razorpay(rzpOptions);
+                rzpObj.open();
+            } catch (err) {
+                console.error(err);
+                alert(err.response?.data?.message || 'Error initializing Razorpay payment.');
+                setProcessing(false);
+            }
         }
     };
 
@@ -414,7 +502,7 @@ function StripePaymentModal({ amount, freelancerName, contractId, onClose }) {
                 <div style={{ padding: '24px 28px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#635bff', fontWeight: 800, fontSize: 13, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.08em' }}>
-                            <span style={{ fontSize: 16 }}>💳</span> Stripe Secure
+                            <span style={{ fontSize: 16 }}>💳</span> Lumina Escrow Secure
                         </div>
                         <p style={{ margin: '4px 0 0 0', color: 'var(--text-dim)', fontSize: 12.5 }}>Secure Payment Escrow Setup</p>
                     </div>
@@ -422,6 +510,16 @@ function StripePaymentModal({ amount, freelancerName, contractId, onClose }) {
                 </div>
 
                 <div style={{ padding: '24px 28px' }}>
+                    {/* Gateway Selector tabs */}
+                    <div style={{ display: 'flex', gap: 8, padding: 4, background: 'rgba(255,255,255,.03)', border: '1px solid var(--border-strong)', borderRadius: 99, marginBottom: 20 }}>
+                        <button type="button" onClick={() => setGateway('razorpay')} style={{ flex: 1, padding: '8px 16px', borderRadius: 99, border: 'none', background: gateway === 'razorpay' ? 'linear-gradient(90deg,#635bff,var(--cyan))' : 'transparent', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
+                            Razorpay (UPI / Cards)
+                        </button>
+                        <button type="button" onClick={() => setGateway('stripe')} style={{ flex: 1, padding: '8px 16px', borderRadius: 99, border: 'none', background: gateway === 'stripe' ? 'linear-gradient(90deg,#635bff,var(--cyan))' : 'transparent', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
+                            Stripe Checkout
+                        </button>
+                    </div>
+
                     <form onSubmit={handlePay} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                             <div style={{ padding: '16px 20px', background: 'rgba(99,91,255,.05)', border: '1px solid rgba(99,91,255,.15)', borderRadius: 8 }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--text-dim)' }}>
@@ -434,31 +532,41 @@ function StripePaymentModal({ amount, freelancerName, contractId, onClose }) {
                                 </div>
                             </div>
 
-                            <div>
-                                <label style={{ display: 'block', fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Card Number</label>
-                                <input type="text" required placeholder="4242 4242 4242 4242" value={cardNo} onChange={e => setCardNo(formatCard(e.target.value))}
-                                    style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'rgba(255,255,255,.02)', color: '#fff', fontSize: 14.5, outline: 'none' }}
-                                />
-                            </div>
+                            {gateway === 'stripe' && (
+                                <>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Card Number</label>
+                                        <input type="text" required placeholder="4242 4242 4242 4242" value={cardNo} onChange={e => setCardNo(formatCard(e.target.value))}
+                                            style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'rgba(255,255,255,.02)', color: '#fff', fontSize: 14.5, outline: 'none' }}
+                                        />
+                                    </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Expiry Date</label>
-                                    <input type="text" required placeholder="MM/YY" value={expiry} onChange={e => setExpiry(formatExpiry(e.target.value))}
-                                        style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'rgba(255,255,255,.02)', color: '#fff', fontSize: 14.5, outline: 'none' }}
-                                    />
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Expiry Date</label>
+                                            <input type="text" required placeholder="MM/YY" value={expiry} onChange={e => setExpiry(formatExpiry(e.target.value))}
+                                                style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'rgba(255,255,255,.02)', color: '#fff', fontSize: 14.5, outline: 'none' }}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>CVC</label>
+                                            <input type="text" required placeholder="123" maxLength={3} value={cvc} onChange={e => setCvc(e.target.value.replace(/\D/g, ''))}
+                                                style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'rgba(255,255,255,.02)', color: '#fff', fontSize: 14.5, outline: 'none' }}
+                                            />
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {gateway === 'razorpay' && (
+                                <div style={{ padding: '12px 14px', background: 'rgba(47,216,238,.03)', border: '1px solid rgba(47,216,238,.12)', borderRadius: 8, textAlign: 'center', fontSize: 13, color: 'var(--text-dim)' }}>
+                                    📱 Clicking pay will launch the Razorpay Checkout popup supporting **UPI QR, Cards, and NetBanking**.
                                 </div>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>CVC</label>
-                                    <input type="text" required placeholder="123" maxLength={3} value={cvc} onChange={e => setCvc(e.target.value.replace(/\D/g, ''))}
-                                        style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'rgba(255,255,255,.02)', color: '#fff', fontSize: 14.5, outline: 'none' }}
-                                    />
-                                </div>
-                            </div>
+                            )}
 
                             <button type="submit" disabled={processing} style={{ padding: '12px 24px', borderRadius: 999, border: 'none', background: 'linear-gradient(90deg,#635bff,var(--cyan))', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'var(--font-body)', marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                                 {processing ? (
-                                    <>Setting up secure escrow...</>
+                                    <>Escrowing payment...</>
                                 ) : (
                                     <>Pay & Start Project</>
                                 )}
