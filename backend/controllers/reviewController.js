@@ -21,14 +21,14 @@ exports.submitReview = async (req, res) => {
     let revieweeId;
     if (role === 'CLIENT') {
       // Client must own this project
-      if (project.client.toString() !== reviewerId.toString())
+      if (project.clientId.toString() !== reviewerId.toString())
         return res.status(403).json({ success: false, message: 'Not your project' });
       revieweeId = accepted.freelancer; // client reviews freelancer
     } else {
       // Freelancer must be the accepted one
       if (accepted.freelancer.toString() !== reviewerId.toString())
         return res.status(403).json({ success: false, message: 'You are not the freelancer on this project' });
-      revieweeId = project.client; // freelancer reviews client
+      revieweeId = project.clientId; // freelancer reviews client
     }
 
     const existing = await Review.findOne({ project: projectId, reviewer: reviewerId });
