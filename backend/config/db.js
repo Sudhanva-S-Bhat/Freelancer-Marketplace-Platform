@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 
 async function connectDB() {
+  if (mongoose.connection.readyState >= 1) return;
+
   const uri = process.env.MONGO_URI;
   if (!uri) {
     throw new Error('MONGO_URI is not set in the environment');
