@@ -500,8 +500,8 @@ function ClientProjectDetails() {
                                                     </button>
                                                 )}
 
-                                                {/* Accept / Reject — pending proposals on open project */}
-                                                {proposal.status === "pending" && project.status === "Open" && (
+                                                {/* Accept / Reject — pending proposals on open or in progress project */}
+                                                {proposal.status === "pending" && (project.status === "Open" || project.status === "In Progress") && (
                                                     <>
                                                         <button disabled={isActioning} onClick={() => handleAction(proposal._id, "accepted")} style={{ padding: "10px 20px", borderRadius: 999, border: "none", background: "linear-gradient(90deg,var(--ok),#2fd8ee)", color: "#04070d", fontWeight: 700, fontSize: 13.5, cursor: isActioning ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 7, opacity: isActioning ? .6 : 1, transition: "box-shadow .25s", fontFamily: "var(--font-body)" }}
                                                             onMouseOver={e => { if (!isActioning) e.currentTarget.style.boxShadow = "0 6px 24px -6px rgba(62,230,168,.6)"; }}
