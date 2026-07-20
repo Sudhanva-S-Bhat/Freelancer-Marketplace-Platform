@@ -204,16 +204,7 @@ function FreelancerBids() {
                                     </div>
                                 </div>
 
-                                {/* Message button for accepted bids */}
-                                {proposal.status === 'accepted' && (
-                                    <button onClick={() => setMsgTarget(proposal)}
-                                        style={{ padding: '10px 20px', borderRadius: 999, border: '1px solid rgba(47,216,238,.35)', background: 'rgba(47,216,238,.08)', color: 'var(--cyan)', fontWeight: 600, fontSize: 13.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-body)', transition: 'background .2s, box-shadow .2s', flexShrink: 0 }}
-                                        onMouseOver={e => { e.currentTarget.style.background = 'rgba(47,216,238,.15)'; e.currentTarget.style.boxShadow = '0 6px 24px -6px rgba(47,216,238,.4)'; }}
-                                        onMouseOut={e => { e.currentTarget.style.background = 'rgba(47,216,238,.08)'; e.currentTarget.style.boxShadow = 'none'; }}
-                                    >
-                                        <MessageSquare size={15} /> Message Client
-                                    </button>
-                                )}
+
                             </motion.div>
                         );
                     })}

@@ -1,6 +1,5 @@
 const Proposal = require('../models/Proposal');
 const Project = require('../models/Project');
-const Message = require('../models/Message');
 
 // Freelancer: Submit a new proposal
 exports.submitProposal = async (req, res) => {

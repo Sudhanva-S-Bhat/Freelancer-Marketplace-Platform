@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Briefcase, ExternalLink, Send, X } from 'lucide-react';
+import { Briefcase, ExternalLink, Send, X, MessageSquare } from 'lucide-react';
 import api from '../../api/axiosInstance';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -132,7 +132,15 @@ export default function FreelancerContracts() {
                                         <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Timeline</div>
                                         <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text)' }}>{contract.estimatedTime}</div>
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px' }}>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => navigate(`/freelancer/messages`)}
+                                            style={{ borderColor: 'var(--border-strong)', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: 6 }}
+                                        >
+                                            <MessageSquare size={14} /> Message Client
+                                        </Button>
                                         <Button 
                                             variant="outline" 
                                             size="sm" 
