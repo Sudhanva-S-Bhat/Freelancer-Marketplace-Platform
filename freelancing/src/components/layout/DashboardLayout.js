@@ -36,31 +36,56 @@ function NotificationDropdown({ role, onClose }) {
         const notifications = [];
 
         if (role === 'CLIENT') {
-          // Fetch proposals on client's projects
-          const projRes = await api.get('/projects/my-projects');
+          // Fetch projects + messages in parallel
+          const [projRes, msgRes] = await Promise.all([
+            api.get('/projects/my-projects'),
+            api.get('/messages/conversations'),
+          ]);
           const projects = projRes.data.projects || [];
 
-          for (const proj of projects.slice(0, 3)) {
-            try {
-              const propRes = await api.get(`/proposals/project/${proj._id}`);
-              const proposals = propRes.data.proposals || [];
-              const pending   = proposals.filter(p => p.status === 'pending');
-              if (pending.length > 0) {
-                notifications.push({
-                  id:    `proj-${proj._id}`,
-                  icon:  DollarSign,
-                  color: 'var(--cyan)',
-                  title: `${pending.length} new bid${pending.length > 1 ? 's' : ''} on "${proj.title}"`,
-                  sub:   'Tap to review proposals',
-                  path:  `/client/project/${proj._id}`,
-                  dot:   true,
-                });
-              }
-            } catch { /* skip */ }
-          }
+          // Fetch all project proposals in parallel (not one by one)
+          const propResults = await Promise.all(
+            projects.slice(0, 3).map(proj =>
+              api.get(`/proposals/project/${proj._id}`).catch(() => ({ data: { proposals: [] } }))
+            )
+          );
+
+          projects.slice(0, 3).forEach((proj, idx) => {
+            const proposals = propResults[idx]?.data?.proposals || [];
+            const pending   = proposals.filter(p => p.status === 'pending');
+            if (pending.length > 0) {
+              notifications.push({
+                id:    `proj-${proj._id}`,
+                icon:  DollarSign,
+                color: 'var(--cyan)',
+                title: `${pending.length} new bid${pending.length > 1 ? 's' : ''} on "${proj.title}"`,
+                sub:   'Tap to review proposals',
+                path:  `/client/project/${proj._id}`,
+                dot:   true,
+              });
+            }
+          });
+
+          // Add unread message notifications
+          const convos = msgRes.data.conversations || [];
+          convos.filter(c => c.unreadCount > 0).slice(0, 3).forEach(c => {
+            notifications.push({
+              id:    `msg-${c.projectId}-${c.otherUserId}`,
+              icon:  MessageSquare,
+              color: 'var(--violet)',
+              title: `New message from ${c.otherUserName}`,
+              sub:   c.latestMessage?.slice(0, 50) + (c.latestMessage?.length > 50 ? '…' : ''),
+              path:  '/client/messages',
+              dot:   true,
+            });
+          });
+
         } else {
-          // Fetch freelancer proposals
-          const propRes = await api.get('/proposals/my-proposals');
+          // Fetch freelancer proposals + messages in parallel
+          const [propRes, msgRes] = await Promise.all([
+            api.get('/proposals/my-proposals'),
+            api.get('/messages/conversations'),
+          ]);
           const proposals = propRes.data.proposals || [];
 
           proposals.slice(0, 5).forEach(p => {
@@ -86,22 +111,20 @@ function NotificationDropdown({ role, onClose }) {
               });
             }
           });
-        }
 
-        // Messages — unread convos
-        const msgRes = await api.get('/messages/conversations');
-        const convos  = msgRes.data.conversations || [];
-        convos.filter(c => c.unreadCount > 0).slice(0, 3).forEach(c => {
-          notifications.push({
-            id:    `msg-${c.projectId}-${c.otherUserId}`,
-            icon:  MessageSquare,
-            color: 'var(--violet)',
-            title: `New message from ${c.otherUserName}`,
-            sub:   c.latestMessage?.slice(0, 50) + (c.latestMessage?.length > 50 ? '…' : ''),
-            path:  role === 'CLIENT' ? '/client/messages' : '/freelancer/messages',
-            dot:   true,
+          const convos = msgRes.data.conversations || [];
+          convos.filter(c => c.unreadCount > 0).slice(0, 3).forEach(c => {
+            notifications.push({
+              id:    `msg-${c.projectId}-${c.otherUserId}`,
+              icon:  MessageSquare,
+              color: 'var(--violet)',
+              title: `New message from ${c.otherUserName}`,
+              sub:   c.latestMessage?.slice(0, 50) + (c.latestMessage?.length > 50 ? '…' : ''),
+              path:  '/freelancer/messages',
+              dot:   true,
+            });
           });
-        });
+        }
 
         setItems(notifications);
       } catch (err) { console.error('notifications', err); }
