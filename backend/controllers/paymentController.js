@@ -140,3 +140,74 @@ exports.confirmDirectPayment = async (req, res) => {
     res.status(500).json({ success: false, message: 'Direct confirmation failed', error: error.message });
   }
 };
+
+/* ── Create Razorpay Order ───────────────────────── */
+exports.createRazorpayOrder = async (req, res) => {
+  try {
+    const { proposalId } = req.body;
+    const proposal = await Proposal.findById(proposalId).populate('project freelancer');
+    if (!proposal) {
+      return res.status(404).json({ success: false, message: 'Proposal not found' });
+    }
+
+    const Razorpay = require('razorpay');
+    const rzp = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_TFqTQsgvR8HHV0',
+      key_secret: process.env.RAZORPAY_KEY_SECRET || 'KqhDbB5NsfGxhrG7b7t6GHGS'
+    });
+
+    const options = {
+      amount: Math.round(proposal.bidAmount * 100), // in paise (INR sub-units)
+      currency: 'INR',
+      receipt: `receipt_prop_${proposalId.toString().substring(0, 10)}`,
+      payment_capture: 1
+    };
+
+    const order = await rzp.orders.create(options);
+    res.status(200).json({
+      success: true,
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_TFqTQsgvR8HHV0',
+      proposalId,
+      projectId: proposal.project?._id
+    });
+  } catch (error) {
+    console.error('Razorpay order creation error:', error);
+    res.status(500).json({ success: false, message: 'Failed to create Razorpay order', error: error.message });
+  }
+};
+
+/* ── Confirm Razorpay Payment ────────────────────── */
+exports.confirmRazorpayPayment = async (req, res) => {
+  try {
+    const { proposalId, projectId, razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+
+    // Verify signature
+    const crypto = require('crypto');
+    const secret = process.env.RAZORPAY_KEY_SECRET || 'KqhDbB5NsfGxhrG7b7t6GHGS';
+    const shasum = crypto.createHmac('sha256', secret);
+    shasum.update(`${razorpay_order_id}|${razorpay_payment_id}`);
+    const digest = shasum.digest('hex');
+
+    if (digest !== razorpay_signature) {
+      return res.status(400).json({ success: false, message: 'Payment verification signature mismatch' });
+    }
+
+    // Accept proposal & start project
+    await Proposal.findByIdAndUpdate(proposalId, { status: 'accepted' });
+    await Proposal.updateMany(
+      { project: projectId, _id: { $ne: proposalId } },
+      { status: 'rejected' }
+    );
+    await Project.findByIdAndUpdate(projectId, {
+      status: 'In Progress',
+      paymentStatus: 'Escrow',
+    });
+
+    res.status(200).json({ success: true, message: 'Payment verified and project started' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Verification failed', error: error.message });
+  }
+};

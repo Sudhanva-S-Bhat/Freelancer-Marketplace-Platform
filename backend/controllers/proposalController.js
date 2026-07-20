@@ -44,7 +44,11 @@ exports.getMyProposals = async (req, res) => {
     const freelancerId = req.user._id;
     // Populate project details
     const proposals = await Proposal.find({ freelancer: freelancerId })
-      .populate('project', 'title budget status')
+      .populate({
+        path: 'project',
+        select: 'title budget status client',
+        populate: { path: 'client', select: 'fullName username' }
+      })
       .sort({ createdAt: -1 });
 
     res.status(200).json({ success: true, proposals });
