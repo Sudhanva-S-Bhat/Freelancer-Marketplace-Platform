@@ -55,7 +55,8 @@ router.get('/search', verifyToken, async (req, res) => {
 router.get('/dashboard', freelancerOnly, async (req, res) => {
   try {
     const freelancerId = req.user._id;
-    const proposals = await Proposal.find({ freelancer: freelancerId });
+    const proposals = await Proposal.find({ freelancer: freelancerId })
+      .populate('project', 'status');
     
     let activeBids = 0;
     let totalEarnings = 0;
@@ -64,8 +65,11 @@ router.get('/dashboard', freelancerOnly, async (req, res) => {
     proposals.forEach(p => {
         if (p.status === 'pending') activeBids++;
         if (p.status === 'accepted') {
-            activeContracts++;
             totalEarnings += (p.bidAmount || 0);
+            // Count as active only when the project is still running, not finished
+            if (p.project && p.project.status === 'In Progress') {
+                activeContracts++;
+            }
         }
     });
 
