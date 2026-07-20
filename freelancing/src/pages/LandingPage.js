@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Shield, Briefcase, Star, MessageSquare, CheckCircle, Sparkles } from 'lucide-react';
+import { Shield, Star, MessageSquare, CheckCircle, Sparkles } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';

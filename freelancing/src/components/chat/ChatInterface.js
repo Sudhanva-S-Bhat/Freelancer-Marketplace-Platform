@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, MessageSquare, X, CheckCircle } from 'lucide-react';
+import { Send, MessageSquare } from 'lucide-react';
 import api from '../../api/axiosInstance';
 import '../../styles/dashboard.css';
 

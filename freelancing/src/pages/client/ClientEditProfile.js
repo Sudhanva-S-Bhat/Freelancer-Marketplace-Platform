@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  User, Briefcase, Globe, MapPin,
+  Briefcase, Globe, MapPin,
   DollarSign, CheckCircle, Save, Sparkles,
   Building, Phone, ChevronRight, ChevronLeft
 } from 'lucide-react';
