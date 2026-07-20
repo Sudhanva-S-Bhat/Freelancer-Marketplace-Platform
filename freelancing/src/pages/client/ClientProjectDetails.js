@@ -359,6 +359,119 @@ function ReviewModal({ project, onClose, onSubmitted }) {
     );
 }
 
+/* ── Stripe Payment Overlay Modal ─────────── */
+function StripePaymentModal({ amount, freelancerName, onPay, onClose }) {
+    const [cardNo,    setCardNo]    = useState('');
+    const [expiry,    setExpiry]    = useState('');
+    const [cvc,       setCvc]       = useState('');
+    const [processing,setProcessing]= useState(false);
+    const [success,   setSuccess]   = useState(false);
+
+    const formatCard = (val) => {
+        const clear = val.replace(/\D/g, '');
+        const match = clear.match(/(\d{1,4})/g);
+        return match ? match.join(' ').substring(0, 19) : '';
+    };
+
+    const formatExpiry = (val) => {
+        const clear = val.replace(/\D/g, '');
+        if (clear.length >= 2) {
+            return `${clear.substring(0, 2)}/${clear.substring(2, 4)}`;
+        }
+        return clear;
+    };
+
+    const handlePay = (e) => {
+        e.preventDefault();
+        setProcessing(true);
+        setTimeout(() => {
+            setProcessing(false);
+            setSuccess(true);
+            setTimeout(() => {
+                onPay();
+            }, 1000);
+        }, 1500);
+    };
+
+    return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={onClose}
+            style={{ position: 'fixed', inset: 0, zIndex: 1100, background: 'rgba(0,0,0,.85)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+        >
+            <motion.div initial={{ opacity: 0, scale: .93, y: 15 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: .93, y: 15 }}
+                onClick={e => e.stopPropagation()}
+                style={{ width: '100%', maxWidth: 440, background: '#0a0d1a', borderRadius: 'var(--r-xl)', border: '1px solid var(--border-strong)', boxShadow: '0 24px 60px rgba(0,0,0,.7)', overflow: 'hidden' }}
+            >
+                {/* Header banner */}
+                <div style={{ background: 'linear-gradient(90deg,#635bff,#00e5ff)', height: 6 }} />
+                
+                <div style={{ padding: '24px 28px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#635bff', fontWeight: 800, fontSize: 13, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.08em' }}>
+                            <span style={{ fontSize: 16 }}>💳</span> Stripe Secure
+                        </div>
+                        <p style={{ margin: '4px 0 0 0', color: 'var(--text-dim)', fontSize: 12.5 }}>Secure Payment Escrow Setup</p>
+                    </div>
+                    <button onClick={onClose} style={{ background: 'rgba(255,255,255,.04)', border: '1px solid var(--border-strong)', color: 'var(--text-dim)', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={13} /></button>
+                </div>
+
+                <div style={{ padding: '24px 28px' }}>
+                    {success ? (
+                        <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                            <div style={{ fontSize: 44, color: 'var(--ok)', marginBottom: 12 }}>✓</div>
+                            <h4 style={{ color: 'var(--text-primary)', margin: '0 0 6px 0' }}>Payment Escrowed!</h4>
+                            <p style={{ color: 'var(--text-dim)', fontSize: 13.5 }}>Starting contract with {freelancerName}...</p>
+                        </div>
+                    ) : (
+                        <form onSubmit={handlePay} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                            <div style={{ padding: '16px 20px', background: 'rgba(99,91,255,.05)', border: '1px solid rgba(99,91,255,.15)', borderRadius: 8 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--text-dim)' }}>
+                                    <span>Escrow Amount</span>
+                                    <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>${amount}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-faint)', marginTop: 4 }}>
+                                    <span>Freelancer</span>
+                                    <span>{freelancerName}</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Card Number</label>
+                                <input type="text" required placeholder="4242 4242 4242 4242" value={cardNo} onChange={e => setCardNo(formatCard(e.target.value))}
+                                    style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'rgba(255,255,255,.02)', color: '#fff', fontSize: 14.5, outline: 'none' }}
+                                />
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>Expiry Date</label>
+                                    <input type="text" required placeholder="MM/YY" value={expiry} onChange={e => setExpiry(formatExpiry(e.target.value))}
+                                        style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'rgba(255,255,255,.02)', color: '#fff', fontSize: 14.5, outline: 'none' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 6 }}>CVC</label>
+                                    <input type="text" required placeholder="123" maxLength={3} value={cvc} onChange={e => setCvc(e.target.value.replace(/\D/g, ''))}
+                                        style={{ width: '100%', padding: '11px 14px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'rgba(255,255,255,.02)', color: '#fff', fontSize: 14.5, outline: 'none' }}
+                                    />
+                                </div>
+                            </div>
+
+                            <button type="submit" disabled={processing} style={{ padding: '12px 24px', borderRadius: 999, border: 'none', background: 'linear-gradient(90deg,#635bff,var(--cyan))', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'var(--font-body)', marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                                {processing ? (
+                                    <>Setting up secure escrow...</>
+                                ) : (
+                                    <>Pay & Start Project</>
+                                )}
+                            </button>
+                        </form>
+                    )}
+                </div>
+            </motion.div>
+        </motion.div>
+    );
+}
+
 /* ── Main Component ──────────────────────────── */
 function ClientProjectDetails() {
     const { id }     = useParams();
@@ -372,6 +485,7 @@ function ClientProjectDetails() {
     const [reviewOpen, setReviewOpen] = useState(false);
     const [hasReviewed, setHasReviewed] = useState(false);
     const [ratings, setRatings] = useState({}); // freelancerId → { avg, total }
+    const [stripeTarget, setStripeTarget] = useState(null); // { proposalId, freelancerName, amount }
 
     useEffect(() => {
         (async () => {
@@ -405,6 +519,20 @@ function ClientProjectDetails() {
     }, [id]);
 
     const handleAction = async (proposalId, status) => {
+        if (status === "accepted") {
+            // Find proposal to get freelancer name and bid amount
+            const prop = proposals.find(p => p._id === proposalId);
+            setStripeTarget({
+                proposalId,
+                freelancerName: prop?.freelancer?.fullName || "Freelancer",
+                amount: prop?.bidAmount || project.budget || 0
+            });
+            return;
+        }
+        executeProposalAction(proposalId, status);
+    };
+
+    const executeProposalAction = async (proposalId, status) => {
         setActionId(proposalId);
         try {
             const res = await api.put(`/proposals/${proposalId}/status`, { status });
@@ -413,7 +541,7 @@ function ClientProjectDetails() {
                 if (status === "accepted") setProject(p => ({ ...p, status: "In Progress", paymentStatus: "Escrow" }));
             }
         } catch { alert("Failed to update proposal."); }
-        finally { setActionId(null); }
+        finally { setActionId(null); setStripeTarget(null); }
     };
 
     const handleCompleteProject = async () => {
@@ -726,6 +854,18 @@ function ClientProjectDetails() {
                         project={project}
                         onClose={() => setReviewOpen(false)}
                         onSubmitted={() => setHasReviewed(true)}
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* Stripe Payment Escrow Modal */}
+            <AnimatePresence>
+                {stripeTarget && (
+                    <StripePaymentModal
+                        amount={stripeTarget.amount}
+                        freelancerName={stripeTarget.freelancerName}
+                        onClose={() => setStripeTarget(null)}
+                        onPay={() => executeProposalAction(stripeTarget.proposalId, "accepted")}
                     />
                 )}
             </AnimatePresence>
