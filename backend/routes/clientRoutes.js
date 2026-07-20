@@ -32,13 +32,16 @@ router.get('/stats', clientOnly, async (req, res) => {
     const projects = await Project.find({ clientId });
     const projectIds = projects.map(p => p._id);
 
-    // Active contracts = accepted proposals where the project is still running
+    // Only "In Progress" projects count as active contracts
+    const inProgressIds = projects.filter(p => p.status === 'In Progress').map(p => p._id);
+
+    // Active contracts = accepted proposals only for projects still running
     const activeContracts = await Proposal.countDocuments({
-      project: { $in: projectIds },
+      project: { $in: inProgressIds },
       status: 'accepted'
     });
 
-    // Pending proposals = bids still waiting for a decision
+    // Pending proposals = bids still waiting for a decision across all projects
     const pendingProposals = await Proposal.countDocuments({
       project: { $in: projectIds },
       status: 'pending'
