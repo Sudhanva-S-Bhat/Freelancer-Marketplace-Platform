@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileText, DollarSign, Clock, CheckCircle, XCircle, AlertCircle, Send, X } from 'lucide-react';
+import { FileText, DollarSign, Clock, CheckCircle, XCircle, AlertCircle, Send, X, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosInstance';
 import '../../styles/dashboard.css';
@@ -113,12 +113,90 @@ function MessageModal({ proposal, onClose }) {
     );
 }
 
+/* ── Edit Modal ──────────────────────────────── */
+function EditModal({ proposal, onClose, onSaved }) {
+    const [coverLetter,   setCoverLetter]   = useState(proposal.coverLetter || '');
+    const [bidAmount,     setBidAmount]     = useState(proposal.bidAmount || '');
+    const [estimatedTime, setEstimatedTime] = useState(proposal.estimatedTime || '');
+    const [saving,  setSaving]  = useState(false);
+    const [error,   setError]   = useState('');
+
+    useEffect(() => {
+        const handler = e => { if (e.key === 'Escape') onClose(); };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+    }, [onClose]);
+
+    const handleSave = async e => {
+        e.preventDefault();
+        setSaving(true); setError('');
+        try {
+            const res = await api.put(`/proposals/${proposal._id}/edit`, { coverLetter, bidAmount, estimatedTime });
+            if (res.data.success) { onSaved(res.data.proposal); onClose(); }
+        } catch (err) { setError(err.response?.data?.message || 'Failed to save.'); }
+        finally { setSaving(false); }
+    };
+
+    return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={onClose}
+            style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+        >
+            <motion.div initial={{ opacity: 0, scale: .92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: .92, y: 20 }}
+                transition={{ ease: [.16,.84,.44,1], duration: .3 }}
+                onClick={e => e.stopPropagation()}
+                style={{ width: '100%', maxWidth: 520, background: 'linear-gradient(135deg,rgba(13,17,32,.98),rgba(8,11,20,1))', borderRadius: 'var(--r-xl)', border: '1px solid var(--border-strong)', boxShadow: '0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(139,107,245,.12)', overflow: 'hidden' }}
+            >
+                <div style={{ padding: '22px 26px 18px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                        <p style={{ fontWeight: 700, fontSize: 15, margin: 0 }}>Edit Bid</p>
+                        <p style={{ color: 'var(--violet)', fontSize: 12, margin: 0, fontFamily: 'var(--font-mono)' }}>{proposal.project?.title}</p>
+                    </div>
+                    <button onClick={onClose} style={{ background: 'rgba(255,255,255,.05)', border: '1px solid var(--border-strong)', color: 'var(--text-dim)', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                        <X size={14} />
+                    </button>
+                </div>
+
+                <form onSubmit={handleSave} style={{ padding: '22px 26px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {error && <div className="error-banner">{error}</div>}
+
+                    <div>
+                        <label style={{ display: 'block', fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Cover Letter</label>
+                        <textarea rows={4} value={coverLetter} onChange={e => setCoverLetter(e.target.value)}
+                            style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }} onFocus={onFocus} onBlur={onBlur} />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div>
+                            <label style={{ display: 'block', fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Bid Amount ($)</label>
+                            <input type="number" value={bidAmount} onChange={e => setBidAmount(e.target.value)}
+                                style={inp} onFocus={onFocus} onBlur={onBlur} />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Timeline</label>
+                            <input type="text" placeholder="e.g. 2 weeks" value={estimatedTime} onChange={e => setEstimatedTime(e.target.value)}
+                                style={inp} onFocus={onFocus} onBlur={onBlur} />
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
+                        <button type="button" onClick={onClose} style={{ padding: '10px 20px', borderRadius: 999, border: '1px solid var(--border-strong)', background: 'rgba(255,255,255,.03)', color: 'var(--text-dim)', fontSize: 13.5, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>Cancel</button>
+                        <button type="submit" disabled={saving} style={{ padding: '10px 22px', borderRadius: 999, border: 'none', background: 'linear-gradient(90deg,var(--violet),var(--cyan))', color: '#04070d', fontWeight: 700, fontSize: 13.5, cursor: saving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-body)' }}>
+                            {saving ? 'Saving…' : <><Send size={13} /> Save Changes</>}
+                        </button>
+                    </div>
+                </form>
+            </motion.div>
+        </motion.div>
+    );
+}
+
 /* ── Main Page ───────────────────────────────── */
 function FreelancerBids() {
     const [proposals,  setProposals]  = useState([]);
     const [loading,    setLoading]    = useState(true);
     const [error,      setError]      = useState(null);
-    const [msgTarget,  setMsgTarget]  = useState(null);
+    const [editTarget, setEditTarget] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => { fetchProposals(); }, []);
@@ -204,6 +282,16 @@ function FreelancerBids() {
                                     </div>
                                 </div>
 
+                                {/* Edit button — only for pending bids */}
+                                {proposal.status === 'pending' && (
+                                    <button onClick={() => setEditTarget(proposal)}
+                                        style={{ padding: '10px 20px', borderRadius: 999, border: '1px solid rgba(139,107,245,.35)', background: 'rgba(139,107,245,.08)', color: 'var(--violet)', fontWeight: 600, fontSize: 13.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-body)', transition: 'background .2s', flexShrink: 0 }}
+                                        onMouseOver={e => e.currentTarget.style.background = 'rgba(139,107,245,.18)'}
+                                        onMouseOut={e => e.currentTarget.style.background = 'rgba(139,107,245,.08)'}
+                                    >
+                                        <Pencil size={14} /> Edit Bid
+                                    </button>
+                                )}
 
                             </motion.div>
                         );
@@ -214,7 +302,13 @@ function FreelancerBids() {
 
         {/* Message Modal */}
         <AnimatePresence>
-            {msgTarget && <MessageModal proposal={msgTarget} onClose={() => setMsgTarget(null)} />}
+            {editTarget && (
+                <EditModal
+                    proposal={editTarget}
+                    onClose={() => setEditTarget(null)}
+                    onSaved={updated => setProposals(prev => prev.map(p => p._id === updated._id ? { ...p, ...updated } : p))}
+                />
+            )}
         </AnimatePresence>
         </>
     );
