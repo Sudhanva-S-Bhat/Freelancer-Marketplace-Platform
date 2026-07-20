@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Briefcase, DollarSign, Calendar, Star, Users, ExternalLink, Activity, Send, X } from 'lucide-react';
+import { Briefcase, ExternalLink, Send, X } from 'lucide-react';
 import api from '../../api/axiosInstance';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
