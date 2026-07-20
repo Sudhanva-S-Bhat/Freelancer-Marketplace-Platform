@@ -107,7 +107,7 @@ function login(role) {
       });
     } catch (err) {
       console.error("Login Error:", err);
-      return res.status(500).json({ success: false, message: 'Login failed', error: err.message });
+      return res.status(500).json({ success: false, message: err.message, error: err.message });
     }
   };
 }
