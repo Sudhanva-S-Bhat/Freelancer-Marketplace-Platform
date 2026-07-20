@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Briefcase, DollarSign, Star, MessageSquare, Search } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import api from "../../api/axiosInstance";
 import Button from "../../components/ui/Button";
 import { motion } from "framer-motion";
 import "../../styles/dashboard.css";
@@ -58,6 +59,22 @@ function StatCard({ icon: Icon, value, label, color, delay }) {
 function FreelancerDashboard() {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const [stats, setStats] = useState({
+        activeBids: 0,
+        totalEarnings: 0,
+        activeContracts: 0,
+        unreadMessages: 0
+    });
+
+    useEffect(() => {
+        api.get("/freelancer/dashboard")
+            .then(res => {
+                if (res.data.success && res.data.stats) {
+                    setStats(res.data.stats);
+                }
+            })
+            .catch(console.error);
+    }, []);
 
     return (
         <div style={{ padding: "0" }}>
@@ -78,10 +95,10 @@ function FreelancerDashboard() {
 
             {/* Stats */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 18, marginBottom: 34 }}>
-                <StatCard icon={Briefcase}    value="0"  label="Active Bids"       color="cyan"    delay={1} />
-                <StatCard icon={DollarSign}   value="₹0" label="Total Earnings"    color="green"   delay={2} />
-                <StatCard icon={Star}         value="0"  label="Active Contracts"  color="violet"  delay={3} />
-                <StatCard icon={MessageSquare} value="0" label="Unread Messages"   color="magenta" delay={4} />
+                <StatCard icon={Briefcase}    value={stats.activeBids}  label="Active Bids"       color="cyan"    delay={1} />
+                <StatCard icon={DollarSign}   value={`$${stats.totalEarnings}`} label="Total Earnings"    color="green"   delay={2} />
+                <StatCard icon={Star}         value={stats.activeContracts}  label="Active Contracts"  color="violet"  delay={3} />
+                <StatCard icon={MessageSquare} value={stats.unreadMessages} label="Unread Messages"   color="magenta" delay={4} />
             </div>
 
             {/* Panel */}

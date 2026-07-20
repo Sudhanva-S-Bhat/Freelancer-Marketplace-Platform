@@ -7,6 +7,16 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import '../../styles/dashboard.css';
 
+/* ── Shared field styles ─────────────────────── */
+const inp = {
+  width: '100%', padding: '13px 16px', borderRadius: 'var(--r-sm)',
+  border: '1px solid var(--border-strong)', background: 'rgba(255,255,255,.025)',
+  color: 'var(--text)', fontSize: 14.5, fontFamily: 'var(--font-body)',
+  outline: 'none', boxSizing: 'border-box', transition: 'border-color .25s, box-shadow .25s',
+};
+const focusIn  = e => { e.target.style.borderColor = 'var(--cyan)'; e.target.style.boxShadow = '0 0 0 4px rgba(47,216,238,.1)'; };
+const focusOut = e => { e.target.style.borderColor = 'var(--border-strong)'; e.target.style.boxShadow = 'none'; };
+
 function FreelancerBrowseProjects() {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -79,8 +89,8 @@ function FreelancerBrowseProjects() {
     );
 
     return (
-        <div className="dashboard-content-inner">
-            <div className="dashboard-header" style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="dashboard-page">
+            <div className="dashboard-header-flex">
                 <div>
                     <h1 style={{ fontSize: '28px', margin: '0 0 8px 0' }}>Find Work</h1>
                     <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Browse open projects and submit winning proposals.</p>
@@ -167,56 +177,62 @@ function FreelancerBrowseProjects() {
                             initial={{ opacity: 0, y: 50, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                            style={{ background: 'var(--bg-card)', width: '100%', maxWidth: '600px', borderRadius: '16px', border: '1px solid var(--border-color)', boxShadow: '0 24px 50px rgba(0,0,0,0.5)', overflow: 'hidden' }}
+                            style={{ background: 'linear-gradient(135deg,rgba(13,17,32,.99),rgba(8,11,20,1))', width: '100%', maxWidth: '600px', borderRadius: 'var(--r-xl)', border: '1px solid var(--border-strong)', boxShadow: '0 32px 80px rgba(0,0,0,.85), 0 0 0 1px rgba(47,216,238,.12)', overflow: 'hidden' }}
                         >
-                            <div style={{ padding: '24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)' }}>
+                            <div style={{ padding: '24px 28px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div>
-                                    <h3 style={{ margin: '0 0 4px 0', fontSize: '20px' }}>Submit Proposal</h3>
-                                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '14px' }}>For: {selectedProject.title}</p>
+                                    <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: 700 }}>Submit Proposal</h3>
+                                    <p style={{ margin: 0, color: 'var(--cyan)', fontSize: '13px', fontFamily: 'var(--font-mono)' }}>For: {selectedProject.title}</p>
                                 </div>
-                                <button onClick={() => setSelectedProject(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}>
-                                    <X size={24} />
+                                <button onClick={() => setSelectedProject(null)} style={{ background: 'rgba(255,255,255,.05)', border: '1px solid var(--border-strong)', color: 'var(--text-dim)', borderRadius: '50%', width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background .2s' }}
+                                    onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,.1)'}
+                                    onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,.05)'}
+                                >
+                                    <X size={15} />
                                 </button>
                             </div>
                             
-                            <form onSubmit={handleBidSubmit} style={{ padding: '24px' }}>
+                            <form onSubmit={handleBidSubmit} style={{ padding: '24px 28px' }}>
                                 {submitError && <div className="error-banner" style={{ marginBottom: '16px' }}>{submitError}</div>}
-                                {submitSuccess && <div style={{ background: 'rgba(0, 255, 136, 0.1)', color: '#00FF88', padding: '12px', borderRadius: '8px', marginBottom: '16px', border: '1px solid rgba(0,255,136,0.3)' }}>Proposal submitted successfully!</div>}
+                                {submitSuccess && <div style={{ background: 'rgba(62,230,168,.1)', color: 'var(--ok)', padding: '12px', borderRadius: '8px', marginBottom: '16px', border: '1px solid rgba(62,230,168,.3)' }}>Proposal submitted successfully!</div>}
                                 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
                                     <div>
-                                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Bid Amount ($)</label>
+                                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Bid Amount ($) <span style={{ color: 'var(--cyan)', marginLeft: 4 }}>*</span></label>
                                         <input 
                                             type="number" 
                                             required 
                                             min="1"
                                             value={bidAmount}
                                             onChange={(e) => setBidAmount(e.target.value)}
-                                            style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'white' }}
+                                            style={inp}
+                                            onFocus={focusIn} onBlur={focusOut}
                                             placeholder="e.g. 500"
                                         />
                                     </div>
                                     <div>
-                                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Estimated Time</label>
+                                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Estimated Time <span style={{ color: 'var(--cyan)', marginLeft: 4 }}>*</span></label>
                                         <input 
                                             type="text" 
                                             required 
                                             value={estimatedTime}
                                             onChange={(e) => setEstimatedTime(e.target.value)}
-                                            style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'white' }}
+                                            style={inp}
+                                            onFocus={focusIn} onBlur={focusOut}
                                             placeholder="e.g. 2 weeks"
                                         />
                                     </div>
                                 </div>
                                 
                                 <div style={{ marginBottom: '24px' }}>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)' }}>Cover Letter</label>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Cover Letter <span style={{ color: 'var(--cyan)', marginLeft: 4 }}>*</span></label>
                                     <textarea 
                                         required
                                         rows="6"
                                         value={coverLetter}
                                         onChange={(e) => setCoverLetter(e.target.value)}
-                                        style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'white', resize: 'vertical' }}
+                                        style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }}
+                                        onFocus={focusIn} onBlur={focusOut}
                                         placeholder="Explain why you are the best fit for this project..."
                                     ></textarea>
                                 </div>

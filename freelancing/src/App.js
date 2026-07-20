@@ -18,6 +18,7 @@ import ClientMessages from "./pages/client/ClientMessages";
 import ClientProjects from "./pages/client/ClientProjects";
 import ClientProjectDetails from "./pages/client/ClientProjectDetails";
 import ClientSearchFreelancers from "./pages/client/ClientSearchFreelancers";
+import ClientEditProfile from "./pages/client/ClientEditProfile";
 
 // Freelancer
 import FreelancerLayout from "./pages/freelancer/FreelancerLayout";
@@ -28,6 +29,7 @@ import FreelancerDashboard from "./pages/freelancer/FreelancerDashboard";
 import FreelancerBrowseProjects from "./pages/freelancer/FreelancerBrowseProjects";
 import FreelancerBids from "./pages/freelancer/FreelancerBids";
 import FreelancerMessages from "./pages/freelancer/FreelancerMessages";
+import FreelancerEditProfile from "./pages/freelancer/FreelancerEditProfile";
 
 // Aurora background — copied from lumina.html
 function AuroraBackground() {
@@ -189,6 +191,7 @@ function App() {
                         <Route path="project/:id" element={<ClientProjectDetails />} />
                         <Route path="search-freelancers" element={<ClientSearchFreelancers />} />
                         <Route path="messages" element={<ClientMessages />} />
+                        <Route path="edit-profile" element={<ClientEditProfile />} />
                     </Route>
 
                     {/* Freelancer Authentication */}
@@ -217,6 +220,7 @@ function App() {
                         <Route path="browse-projects" element={<FreelancerBrowseProjects />} />
                         <Route path="my-bids" element={<FreelancerBids />} />
                         <Route path="messages" element={<FreelancerMessages />} />
+                        <Route path="edit-profile" element={<FreelancerEditProfile />} />
                     </Route>
 
                     {/* Catch-all */}

@@ -142,12 +142,13 @@
 
 .header-search input {
     width: 100%;
-    padding: 10px 16px 10px 40px;
+    padding: 10px 16px 10px 42px !important;
     margin: 0;
     border-radius: var(--radius-full);
     background-color: var(--bg-main);
     border: 1px solid transparent;
     box-shadow: none;
+    box-sizing: border-box;
 }
 
 .header-search input:focus {

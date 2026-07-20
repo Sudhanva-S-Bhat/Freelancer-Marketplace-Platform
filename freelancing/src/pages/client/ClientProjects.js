@@ -42,9 +42,9 @@ function ClientProjects() {
     return (
         <motion.div className="dashboard-page" initial="hidden" animate="visible" variants={containerVariants}>
             {/* Header */}
-            <motion.div className="dashboard-header" variants={rowVariants}>
+            <motion.div className="dashboard-header-flex" variants={rowVariants}>
                 <div>
-                    <h1>My Projects</h1>
+                    <h1 style={{ fontSize: 26, margin: 0 }}>My Projects</h1>
                     <p style={{ color: "var(--text-secondary)", marginTop: 4 }}>Manage your posted projects and review incoming bids.</p>
                 </div>
                 <Button variant="primary" icon={<Plus size={18} />} onClick={() => navigate("/client/post-project")}>

@@ -1,178 +1,225 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Send, User, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Send, MessageSquare, X, CheckCircle } from 'lucide-react';
 import api from '../../api/axiosInstance';
-import Card from '../ui/Card';
 import '../../styles/dashboard.css';
+
+/* ── Shared field style ─────────────────────── */
+const inp = {
+    width: '100%', padding: '13px 16px',
+    borderRadius: 'var(--r-sm)', border: '1px solid var(--border-strong)',
+    background: 'rgba(255,255,255,.025)', color: 'var(--text)',
+    fontSize: 14.5, fontFamily: 'var(--font-body)', outline: 'none',
+    boxSizing: 'border-box', transition: 'border-color .25s, box-shadow .25s',
+};
+const onFocus = e => { e.target.style.borderColor = 'var(--cyan)'; e.target.style.boxShadow = '0 0 0 4px rgba(47,216,238,.1)'; };
+const onBlur  = e => { e.target.style.borderColor = 'var(--border-strong)'; e.target.style.boxShadow = 'none'; };
 
 export default function ChatInterface({ currentUserRole }) {
     const [conversations, setConversations] = useState([]);
-    const [activeConv, setActiveConv] = useState(null);
-    const [messages, setMessages] = useState([]);
-    const [newMessage, setNewMessage] = useState('');
-    const [loading, setLoading] = useState(true);
-    
+    const [activeConv,    setActiveConv]    = useState(null);
+    const [messages,      setMessages]      = useState([]);
+    const [newMessage,    setNewMessage]    = useState('');
+    const [loading,       setLoading]       = useState(true);
+    const [sending,       setSending]       = useState(false);
     const messagesEndRef = useRef(null);
 
-    // Fetch conversations list
-    useEffect(() => {
-        fetchConversations();
-        // Polling for new conversations/updates
-        const interval = setInterval(fetchConversations, 10000);
-        return () => clearInterval(interval);
+    /* ── fetch helpers (useCallback to avoid stale closures) ── */
+    const fetchConversations = useCallback(async () => {
+        try {
+            const res = await api.get('/messages/conversations');
+            if (res.data.success) { setConversations(res.data.conversations); setLoading(false); }
+        } catch (err) { console.error('fetchConversations', err); setLoading(false); }
     }, []);
 
-    // Fetch messages when a conversation is selected
-    useEffect(() => {
-        if (activeConv) {
-            fetchMessages();
-            // Faster polling for active chat
-            const interval = setInterval(fetchMessages, 3000);
-            return () => clearInterval(interval);
-        }
-    }, [activeConv]);
+    const fetchMessages = useCallback(async (conv) => {
+        if (!conv) return;
+        try {
+            const res = await api.get(`/messages/${conv.projectId}/${conv.otherUserId}`);
+            if (res.data.success) setMessages(res.data.messages);
+        } catch (err) { console.error('fetchMessages', err); }
+    }, []);
 
-    // Scroll to bottom when messages change
+    /* ── polling ── */
+    useEffect(() => {
+        fetchConversations();
+        const t = setInterval(fetchConversations, 10000);
+        return () => clearInterval(t);
+    }, [fetchConversations]);
+
+    useEffect(() => {
+        if (!activeConv) return;
+        fetchMessages(activeConv);
+        const t = setInterval(() => fetchMessages(activeConv), 3000);
+        return () => clearInterval(t);
+    }, [activeConv, fetchMessages]);
+
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    const fetchConversations = async () => {
-        try {
-            const res = await api.get('/messages/conversations');
-            if (res.data.success) {
-                setConversations(res.data.conversations);
-                setLoading(false);
-            }
-        } catch (err) {
-            console.error("Failed to fetch conversations", err);
-        }
-    };
-
-    const fetchMessages = async () => {
-        if (!activeConv) return;
-        try {
-            const res = await api.get(`/messages/${activeConv.projectId}/${activeConv.otherUserId}`);
-            if (res.data.success) {
-                setMessages(res.data.messages);
-            }
-        } catch (err) {
-            console.error("Failed to fetch messages", err);
-        }
-    };
-
-    const handleSendMessage = async (e) => {
+    /* ── send ── */
+    const handleSend = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim() || !activeConv) return;
-
+        if (!newMessage.trim() || !activeConv || sending) return;
+        setSending(true);
         try {
             const res = await api.post('/messages/send', {
                 receiverId: activeConv.otherUserId,
-                projectId: activeConv.projectId,
-                content: newMessage.trim()
+                projectId:  activeConv.projectId,
+                content:    newMessage.trim(),
             });
-            
             if (res.data.success) {
-                setMessages([...messages, res.data.message]);
+                setMessages(prev => [...prev, res.data.message]);
                 setNewMessage('');
-                fetchConversations(); // Update latest message in sidebar
+                fetchConversations();
             }
-        } catch (err) {
-            console.error("Failed to send message", err);
-        }
+        } catch (err) { console.error('send', err); }
+        finally { setSending(false); }
     };
 
+    /* ── select conversation ── */
+    const handleSelectConv = (conv) => {
+        setActiveConv(conv);
+        setMessages([]);
+        fetchMessages(conv);
+    };
+
+    /* ════════════════ RENDER ════════════════ */
     return (
-        <div className="dashboard-content-inner" style={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
-            <div className="dashboard-header" style={{ marginBottom: '16px' }}>
-                <h1 style={{ fontSize: '24px', margin: 0 }}>Messages</h1>
+        <div className="dashboard-page" style={{ height: 'calc(100vh - 130px)', overflow: 'hidden' }}>
+            {/* Page title */}
+            <div className="dashboard-header-flex" style={{ marginBottom: 0, flexShrink: 0 }}>
+                <div>
+                    <h1 style={{ fontSize: 26 }}>Messages</h1>
+                    <p style={{ color: 'var(--text-dim)', marginTop: 4 }}>
+                        Your project conversations
+                    </p>
+                </div>
             </div>
 
-            <Card padding="none" style={{ flex: 1, display: 'flex', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-                {/* Conversations Sidebar */}
-                <div style={{ width: '320px', borderRight: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.02)', display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)' }}>
-                        <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--text-secondary)' }}>Recent Conversations</h3>
+            {/* Chat shell */}
+            <div style={{
+                flex: 1, display: 'flex', overflow: 'hidden',
+                background: 'linear-gradient(135deg,rgba(13,17,32,.95),rgba(8,11,20,.98))',
+                border: '1px solid var(--border)', borderRadius: 'var(--r-lg)',
+                boxShadow: 'var(--shadow-md)',
+                position: 'relative',
+            }}>
+                {/* Top sheen */}
+                <div style={{ position: 'absolute', top: 0, left: '15%', right: '15%', height: 1, background: 'linear-gradient(90deg,transparent,rgba(47,216,238,.25),transparent)', pointerEvents: 'none' }} />
+
+                {/* ── Sidebar ── */}
+                <div style={{
+                    width: 300, flexShrink: 0,
+                    borderRight: '1px solid var(--border)',
+                    display: 'flex', flexDirection: 'column',
+                    background: 'rgba(255,255,255,.015)',
+                }}>
+                    <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--border)' }}>
+                        <p style={{ fontSize: 12, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-faint)', margin: 0 }}>
+                            Conversations
+                        </p>
                     </div>
+
                     <div style={{ flex: 1, overflowY: 'auto' }}>
                         {loading ? (
-                            <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</div>
+                            <div style={{ padding: 32, textAlign: 'center' }}><div className="spinner spinner-sm" /></div>
                         ) : conversations.length === 0 ? (
-                            <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                <MessageSquare size={32} style={{ margin: '0 auto 8px', opacity: 0.3 }} />
-                                <p style={{ fontSize: '14px' }}>No messages yet.</p>
+                            <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+                                <MessageSquare size={28} style={{ color: 'var(--text-faint)', margin: '0 auto 12px', display: 'block' }} />
+                                <p style={{ color: 'var(--text-faint)', fontSize: 13 }}>No conversations yet</p>
                             </div>
-                        ) : (
-                            conversations.map(conv => (
-                                <div 
-                                    key={`${conv.projectId}_${conv.otherUserId}`}
-                                    onClick={() => setActiveConv(conv)}
+                        ) : conversations.map(conv => {
+                            const isActive = activeConv?.otherUserId === conv.otherUserId && activeConv?.projectId === conv.projectId;
+                            const initial  = conv.otherUserName?.[0]?.toUpperCase() || '?';
+                            return (
+                                <div key={`${conv.projectId}_${conv.otherUserId}`}
+                                    onClick={() => handleSelectConv(conv)}
                                     style={{
-                                        padding: '16px',
-                                        borderBottom: '1px solid var(--border-color)',
-                                        cursor: 'pointer',
-                                        background: activeConv?.otherUserId === conv.otherUserId && activeConv?.projectId === conv.projectId ? 'rgba(0, 229, 255, 0.1)' : 'transparent',
-                                        transition: 'background 0.2s ease',
-                                        position: 'relative'
+                                        padding: '14px 18px', cursor: 'pointer', position: 'relative',
+                                        borderBottom: '1px solid var(--border)',
+                                        background: isActive ? 'rgba(47,216,238,.08)' : 'transparent',
+                                        transition: 'background .15s',
+                                        display: 'flex', gap: 12, alignItems: 'flex-start',
                                     }}
+                                    onMouseOver={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,.03)'; }}
+                                    onMouseOut={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
                                 >
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                                        <strong style={{ color: 'var(--text-primary)' }}>{conv.otherUserName}</strong>
-                                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                                            {new Date(conv.latestMessageDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </span>
+                                    {/* Active indicator */}
+                                    {isActive && <div style={{ position: 'absolute', left: 0, top: '20%', bottom: '20%', width: 3, borderRadius: 3, background: 'var(--cyan)', boxShadow: '0 0 8px var(--cyan)' }} />}
+
+                                    {/* Avatar */}
+                                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,var(--cyan),var(--violet))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14, color: '#04070d', flexShrink: 0, fontFamily: 'var(--font-mono)' }}>
+                                        {initial}
                                     </div>
-                                    <div style={{ fontSize: '12px', color: 'var(--primary)', marginBottom: '4px' }}>{conv.projectTitle}</div>
-                                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        {conv.latestMessage}
+
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+                                            <strong style={{ fontSize: 13.5, color: isActive ? 'var(--cyan)' : 'var(--text)', fontWeight: 600 }}>{conv.otherUserName}</strong>
+                                            <span style={{ fontSize: 10.5, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)', flexShrink: 0 }}>
+                                                {new Date(conv.latestMessageDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        </div>
+                                        <p style={{ fontSize: 11.5, color: 'var(--cyan)', margin: '0 0 3px', fontFamily: 'var(--font-mono)' }}>{conv.projectTitle}</p>
+                                        <p style={{ fontSize: 12.5, color: 'var(--text-faint)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{conv.latestMessage}</p>
                                     </div>
+
                                     {conv.unreadCount > 0 && (
-                                        <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', background: 'var(--primary)', color: '#000', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold' }}>
+                                        <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--cyan)', color: '#04070d', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 0 8px rgba(47,216,238,.6)' }}>
                                             {conv.unreadCount}
                                         </div>
                                     )}
                                 </div>
-                            ))
-                        )}
+                            );
+                        })}
                     </div>
                 </div>
 
-                {/* Main Chat Area */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--bg-card)' }}>
+                {/* ── Chat area ── */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                     {!activeConv ? (
-                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-                            <MessageSquare size={48} style={{ marginBottom: '16px', opacity: 0.2 }} />
-                            <p>Select a conversation to start chatting</p>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+                            <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(47,216,238,.06)', border: '1px solid rgba(47,216,238,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'breathe 2.8s infinite' }}>
+                                <MessageSquare size={24} color="var(--cyan)" />
+                            </div>
+                            <p style={{ color: 'var(--text-faint)', fontSize: 14 }}>Select a conversation to chat</p>
                         </div>
                     ) : (
                         <>
-                            {/* Chat Header */}
-                            <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.02)' }}>
-                                <h3 style={{ margin: '0 0 4px 0', fontSize: '18px' }}>{activeConv.otherUserName}</h3>
-                                <p style={{ margin: 0, fontSize: '13px', color: 'var(--primary)' }}>Project: {activeConv.projectTitle}</p>
+                            {/* Chat header */}
+                            <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,.02)', display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
+                                <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'linear-gradient(135deg,var(--cyan),var(--violet))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 15, color: '#04070d', fontFamily: 'var(--font-mono)' }}>
+                                    {activeConv.otherUserName?.[0]?.toUpperCase()}
+                                </div>
+                                <div>
+                                    <p style={{ fontWeight: 700, margin: 0, fontSize: 15 }}>{activeConv.otherUserName}</p>
+                                    <p style={{ margin: 0, fontSize: 12, color: 'var(--cyan)', fontFamily: 'var(--font-mono)' }}>{activeConv.projectTitle}</p>
+                                </div>
                             </div>
 
-                            {/* Messages List */}
-                            <div style={{ flex: 1, padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            {/* Messages */}
+                            <div style={{ flex: 1, padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
                                 {messages.map((msg, idx) => {
                                     const isMine = msg.sender._id !== activeConv.otherUserId;
                                     return (
                                         <div key={msg._id || idx} style={{ display: 'flex', flexDirection: 'column', alignItems: isMine ? 'flex-end' : 'flex-start' }}>
-                                            <div 
-                                                style={{ 
-                                                    maxWidth: '70%', 
-                                                    padding: '12px 16px', 
-                                                    borderRadius: '16px',
-                                                    borderBottomRightRadius: isMine ? '4px' : '16px',
-                                                    borderBottomLeftRadius: !isMine ? '4px' : '16px',
-                                                    background: isMine ? 'var(--primary)' : 'rgba(255,255,255,0.08)',
-                                                    color: isMine ? '#0B0E14' : 'var(--text-primary)',
-                                                    fontWeight: isMine ? '500' : '400',
-                                                    lineHeight: '1.5'
-                                                }}
-                                            >
+                                            <div style={{
+                                                maxWidth: '68%', padding: '11px 16px',
+                                                borderRadius: 16,
+                                                borderBottomRightRadius: isMine ? 4 : 16,
+                                                borderBottomLeftRadius: isMine ? 16 : 4,
+                                                background: isMine
+                                                    ? 'linear-gradient(135deg,var(--cyan),var(--violet))'
+                                                    : 'rgba(255,255,255,.07)',
+                                                border: isMine ? 'none' : '1px solid var(--border)',
+                                                color: isMine ? '#04070d' : 'var(--text)',
+                                                fontWeight: isMine ? 600 : 400,
+                                                fontSize: 14, lineHeight: 1.55,
+                                                boxShadow: isMine ? '0 4px 16px -6px rgba(47,216,238,.5)' : 'none',
+                                            }}>
                                                 {msg.content}
                                             </div>
-                                            <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                            <span style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>
                                                 {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                         </div>
@@ -181,49 +228,38 @@ export default function ChatInterface({ currentUserRole }) {
                                 <div ref={messagesEndRef} />
                             </div>
 
-                            {/* Message Input */}
-                            <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border-color)', background: 'var(--bg-main)' }}>
-                                <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '12px' }}>
-                                    <input 
-                                        type="text" 
-                                        value={newMessage}
-                                        onChange={(e) => setNewMessage(e.target.value)}
-                                        placeholder="Type a message..." 
-                                        style={{ 
-                                            flex: 1, 
-                                            padding: '12px 16px', 
-                                            borderRadius: '24px', 
-                                            border: '1px solid var(--border-color)', 
-                                            background: 'rgba(255,255,255,0.05)',
-                                            color: 'white',
-                                            outline: 'none'
-                                        }} 
+                            {/* Input bar */}
+                            <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border)', background: 'rgba(255,255,255,.02)', flexShrink: 0 }}>
+                                <form onSubmit={handleSend} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                                    <input
+                                        type="text" value={newMessage}
+                                        onChange={e => setNewMessage(e.target.value)}
+                                        placeholder="Type a message…"
+                                        style={{ ...inp, borderRadius: 999, padding: '11px 18px' }}
+                                        onFocus={onFocus} onBlur={onBlur}
                                     />
-                                    <button 
-                                        type="submit" 
-                                        disabled={!newMessage.trim()}
-                                        style={{ 
-                                            background: 'var(--primary)', 
-                                            color: '#0B0E14', 
-                                            border: 'none', 
-                                            borderRadius: '50%', 
-                                            width: '44px', 
-                                            height: '44px', 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
-                                            justifyContent: 'center',
-                                            cursor: newMessage.trim() ? 'pointer' : 'not-allowed',
-                                            opacity: newMessage.trim() ? 1 : 0.5
-                                        }}
-                                    >
-                                        <Send size={18} />
+                                    <button type="submit" disabled={!newMessage.trim() || sending} style={{
+                                        width: 44, height: 44, borderRadius: '50%', border: 'none', flexShrink: 0,
+                                        background: newMessage.trim() && !sending
+                                            ? 'linear-gradient(135deg,var(--cyan),var(--violet))'
+                                            : 'rgba(255,255,255,.06)',
+                                        color: newMessage.trim() && !sending ? '#04070d' : 'var(--text-faint)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        cursor: newMessage.trim() && !sending ? 'pointer' : 'not-allowed',
+                                        transition: 'box-shadow .25s, background .2s',
+                                        boxShadow: newMessage.trim() && !sending ? '0 4px 16px -6px rgba(47,216,238,.6)' : 'none',
+                                    }}>
+                                        {sending
+                                            ? <span style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid rgba(4,7,13,.3)', borderTopColor: '#04070d', animation: 'spin .7s linear infinite', display: 'inline-block' }} />
+                                            : <Send size={17} />
+                                        }
                                     </button>
                                 </form>
                             </div>
                         </>
                     )}
                 </div>
-            </Card>
+            </div>
         </div>
     );
 }

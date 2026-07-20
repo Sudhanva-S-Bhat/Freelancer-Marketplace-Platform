@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileText, Layers, DollarSign, Calendar, Tag, Star, CheckCircle } from "lucide-react";
 import api from "../../api/axiosInstance";
+import LuminaSelect from "../../components/ui/LuminaSelect";
 import "../../styles/dashboard.css";
 
 const FIELD = ({ label, children }) => (
@@ -19,13 +20,8 @@ const inputStyle = {
   transition: "border-color .25s, box-shadow .25s",
 };
 
-const selectStyle = {
-  ...inputStyle,
-  cursor: "pointer",
-  appearance: "none",
-  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239aa2ba' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-  backgroundRepeat: "no-repeat", backgroundPosition: "right 14px center",
-};
+
+
 
 export default function ClientPostProject() {
   const navigate = useNavigate();
@@ -103,29 +99,26 @@ export default function ClientPostProject() {
 
           {/* Category */}
           <FIELD label="Category">
-            <div style={{ position: "relative" }}>
-              <Layers size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-faint)", pointerEvents: "none" }} />
-              <select name="category" value={formData.category} onChange={handleChange} required
-                style={{ ...selectStyle, paddingLeft: 42 }}
-                onFocus={focusStyle} onBlur={blurStyle}>
-                <option value="">Select category</option>
-                {["Web Development","Mobile Development","Design","Writing","Marketing","Data Science","Video & Animation","Other"].map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
+            <LuminaSelect
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              placeholder="Select category"
+              icon={Layers}
+              options={["Web Development","Mobile Development","Design","Writing","Marketing","Data Science","Video & Animation","Other"]}
+            />
           </FIELD>
 
           {/* Experience Level */}
           <FIELD label="Experience Level">
-            <div style={{ position: "relative" }}>
-              <Star size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-faint)", pointerEvents: "none" }} />
-              <select name="experienceLevel" value={formData.experienceLevel} onChange={handleChange}
-                style={{ ...selectStyle, paddingLeft: 42 }}
-                onFocus={focusStyle} onBlur={blurStyle}>
-                {["Beginner","Intermediate","Expert"].map(l => <option key={l} value={l}>{l}</option>)}
-              </select>
-            </div>
+            <LuminaSelect
+              name="experienceLevel"
+              value={formData.experienceLevel}
+              onChange={handleChange}
+              placeholder="Select level"
+              icon={Star}
+              options={["Beginner","Intermediate","Expert"]}
+            />
           </FIELD>
 
           {/* Skills */}
