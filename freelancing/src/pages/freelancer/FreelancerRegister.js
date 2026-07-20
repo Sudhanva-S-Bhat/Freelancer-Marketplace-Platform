@@ -35,10 +35,10 @@ function FreelancerRegister() {
         setGeneratedOtp(otp);
 
         try {
-            // EmailJS send template details (Replace Service / Template / Public Key if you have custom keys)
-            const serviceId = "service_lumina";
-            const templateId = "template_otp";
-            const publicKey = "user_lumina_public_key";
+            // EmailJS send template details
+            const serviceId = "service_fpqnxup";
+            const templateId = "template_mbvkn0e";
+            const publicKey = "TXq7iMmNYF2AMLPH1";
 
             // Attempt EmailJS dispatch
             await emailjs.send(
