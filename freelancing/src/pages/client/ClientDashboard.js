@@ -120,7 +120,7 @@ function ClientDashboard() {
                             <div className="neon-icon-wrapper yellow">
                                 <Clock size={24} />
                             </div>
-                            <h2 style={{ fontSize: '32px', margin: '0 0 4px 0' }}>0</h2>
+                            <h2 style={{ fontSize: '32px', margin: '0 0 4px 0' }}>{stats.pendingProposals}</h2>
                             <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '500' }}>Pending Proposals</span>
                         </Card>
                         </motion.div>
@@ -130,7 +130,7 @@ function ClientDashboard() {
                             <div className="neon-icon-wrapper green">
                                 <FileCheck size={24} />
                             </div>
-                            <h2 style={{ fontSize: '32px', margin: '0 0 4px 0' }}>0</h2>
+                            <h2 style={{ fontSize: '32px', margin: '0 0 4px 0' }}>{stats.activeContracts}</h2>
                             <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '500' }}>Active Contracts</span>
                         </Card>
                         </motion.div>
@@ -140,7 +140,7 @@ function ClientDashboard() {
                             <div className="neon-icon-wrapper purple">
                                 <MessageSquare size={24} />
                             </div>
-                            <h2 style={{ fontSize: '32px', margin: '0 0 4px 0' }}>0</h2>
+                            <h2 style={{ fontSize: '32px', margin: '0 0 4px 0' }}>{stats.unreadMessages}</h2>
                             <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '500' }}>Unread Messages</span>
                         </Card>
                         </motion.div>
