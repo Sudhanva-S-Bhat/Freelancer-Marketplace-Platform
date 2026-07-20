@@ -360,7 +360,7 @@ function ReviewModal({ project, onClose, onSubmitted }) {
 }
 
 /* ── Stripe Payment Overlay Modal ─────────── */
-function StripePaymentModal({ amount, freelancerName, onPay, onClose }) {
+function StripePaymentModal({ amount, freelancerName, contractId, onClose }) {
     const [cardNo,    setCardNo]    = useState('');
     const [expiry,    setExpiry]    = useState('');
     const [cvc,       setCvc]       = useState('');
@@ -381,16 +381,24 @@ function StripePaymentModal({ amount, freelancerName, onPay, onClose }) {
         return clear;
     };
 
-    const handlePay = (e) => {
+    const handlePay = async (e) => {
         e.preventDefault();
         setProcessing(true);
-        setTimeout(() => {
+        try {
+            // Call API to create Stripe Checkout session URL
+            const res = await api.post('/payments/create-checkout-session', { proposalId: contractId });
+            if (res.data.success && res.data.url) {
+                // Redirect user to real Stripe Checkout hosted payment page
+                window.location.href = res.data.url;
+            } else {
+                alert('Could not initiate checkout session.');
+                setProcessing(false);
+            }
+        } catch (err) {
+            console.error(err);
+            alert(err.response?.data?.message || 'Error redirecting to Stripe payment checkout.');
             setProcessing(false);
-            setSuccess(true);
-            setTimeout(() => {
-                onPay();
-            }, 1000);
-        }, 1500);
+        }
     };
 
     return (
@@ -490,6 +498,19 @@ function ClientProjectDetails() {
     useEffect(() => {
         (async () => {
             try {
+                // Check if returning from a successful Stripe payment redirect
+                const params = new URLSearchParams(window.location.search);
+                const isSuccess = params.get('payment_success');
+                const proposalId = params.get('proposal_id');
+                
+                if (isSuccess && proposalId) {
+                    setLoading(true);
+                    // Confirm payment direct to update DB state securely
+                    await api.post('/payments/confirm-direct', { proposalId, projectId: id });
+                    // Remove queries from URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+
                 const [pRes, propRes] = await Promise.all([
                     api.get(`/projects/${id}`),
                     api.get(`/proposals/project/${id}`)
@@ -513,7 +534,10 @@ function ClientProjectDetails() {
                 // Check if already reviewed
                 const revRes = await api.get(`/reviews/check/${id}`).catch(() => null);
                 if (revRes?.data?.hasReviewed) setHasReviewed(true);
-            } catch { setError("Failed to load project details."); }
+            } catch (err) { 
+                console.error(err);
+                setError("Failed to load project details."); 
+            }
             finally  { setLoading(false); }
         })();
     }, [id]);
@@ -863,9 +887,9 @@ function ClientProjectDetails() {
                 {stripeTarget && (
                     <StripePaymentModal
                         amount={stripeTarget.amount}
+                        contractId={stripeTarget.proposalId}
                         freelancerName={stripeTarget.freelancerName}
                         onClose={() => setStripeTarget(null)}
-                        onPay={() => executeProposalAction(stripeTarget.proposalId, "accepted")}
                     />
                 )}
             </AnimatePresence>
