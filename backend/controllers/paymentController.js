@@ -1,7 +1,3 @@
-const stripeSecret = process.env.STRIPE_SECRET_KEY;
-const stripe = stripeSecret && stripeSecret.startsWith('sk_') 
-  ? require('stripe')(stripeSecret) 
-  : null;
 const Project = require('../models/Project');
 const Proposal = require('../models/Proposal');
 
@@ -23,7 +19,17 @@ exports.createCheckoutSession = async (req, res) => {
     // Determine return domain URL
     const origin = req.headers.origin || 'http://localhost:3000';
 
-    if (!stripe) {
+    const stripeSecret = process.env.STRIPE_SECRET_KEY;
+    let stripeInstance = null;
+    if (stripeSecret && stripeSecret.startsWith('sk_')) {
+      try {
+        stripeInstance = require('stripe')(stripeSecret);
+      } catch (err) {
+        console.warn('Failed to load stripe package dynamically:', err.message);
+      }
+    }
+
+    if (!stripeInstance) {
       // Missing Stripe Key -> fallback immediately to direct confirm simulation URL
       console.log('Stripe key missing. Using simulated checkout fallback url.');
       return res.status(200).json({ 
@@ -33,7 +39,7 @@ exports.createCheckoutSession = async (req, res) => {
     }
 
     // Stripe checkout session parameters
-    const session = await stripe.checkout.sessions.create({
+    const session = await stripeInstance.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {
@@ -71,7 +77,10 @@ exports.handleWebhook = async (req, res) => {
 
   try {
     if (process.env.STRIPE_WEBHOOK_SECRET) {
-      event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+      const stripeSecret = process.env.STRIPE_SECRET_KEY;
+      const stripeInstance = stripeSecret && stripeSecret.startsWith('sk_') ? require('stripe')(stripeSecret) : null;
+      if (!stripeInstance) throw new Error('Stripe is not configured');
+      event = stripeInstance.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
     } else {
       event = req.body;
     }
