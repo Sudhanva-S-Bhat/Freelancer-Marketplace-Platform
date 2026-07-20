@@ -22,21 +22,25 @@ function ClientDashboard() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch projects and dashboard stats in parallel
-                const [projectsRes, statsRes] = await Promise.all([
-                    api.get("/projects/client/my-projects"),
-                    api.get("/clients/stats")
-                ]);
+                // Fetch projects — this is the critical call
+                const projectsRes = await api.get("/projects/client/my-projects");
                 if (projectsRes.data.success) setProjects(projectsRes.data.projects);
+            } catch (err) {
+                setError(err.response?.data?.message || "Failed to load projects");
+            } finally {
+                setLoading(false);
+            }
+
+            // Fetch stats separately — a failure here won't break the dashboard
+            try {
+                const statsRes = await api.get("/client/stats");
                 if (statsRes.data.success) setStats({
                     activeContracts: statsRes.data.activeContracts,
                     pendingProposals: statsRes.data.pendingProposals,
                     unreadMessages: statsRes.data.unreadMessages,
                 });
-            } catch (err) {
-                setError(err.response?.data?.message || "Failed to load dashboard");
-            } finally {
-                setLoading(false);
+            } catch {
+                // Stats are non-critical — silently ignore if they fail
             }
         };
 
@@ -116,7 +120,7 @@ function ClientDashboard() {
                             <div className="neon-icon-wrapper yellow">
                                 <Clock size={24} />
                             </div>
-                            <h2 style={{ fontSize: '32px', margin: '0 0 4px 0' }}>{stats.pendingProposals}</h2>
+                            <h2 style={{ fontSize: '32px', margin: '0 0 4px 0' }}>0</h2>
                             <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '500' }}>Pending Proposals</span>
                         </Card>
                         </motion.div>
@@ -126,7 +130,7 @@ function ClientDashboard() {
                             <div className="neon-icon-wrapper green">
                                 <FileCheck size={24} />
                             </div>
-                            <h2 style={{ fontSize: '32px', margin: '0 0 4px 0' }}>{stats.activeContracts}</h2>
+                            <h2 style={{ fontSize: '32px', margin: '0 0 4px 0' }}>0</h2>
                             <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '500' }}>Active Contracts</span>
                         </Card>
                         </motion.div>
@@ -136,7 +140,7 @@ function ClientDashboard() {
                             <div className="neon-icon-wrapper purple">
                                 <MessageSquare size={24} />
                             </div>
-                            <h2 style={{ fontSize: '32px', margin: '0 0 4px 0' }}>{stats.unreadMessages}</h2>
+                            <h2 style={{ fontSize: '32px', margin: '0 0 4px 0' }}>0</h2>
                             <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '500' }}>Unread Messages</span>
                         </Card>
                         </motion.div>
