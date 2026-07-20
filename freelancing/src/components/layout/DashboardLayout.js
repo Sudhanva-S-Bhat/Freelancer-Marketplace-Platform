@@ -238,7 +238,7 @@ const DashboardLayout = ({ role }) => {
       <aside className={`dashboard-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <div className="nav-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Sparkles size={28} color="var(--primary)" />
+            <img src="/logo.png" alt="Lumina" style={{ width: 32, height: 32, objectFit: 'contain' }} />
             <span style={{ fontSize: '1.5rem', fontWeight: '700', letterSpacing: '-0.02em', background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Lumina</span>
           </div>
           <button className="mobile-close-btn" onClick={() => setSidebarOpen(false)}><X size={20} /></button>
