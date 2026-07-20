@@ -39,9 +39,22 @@ function FreelancerBrowseProjects() {
     const fetchProjects = async () => {
         try {
             setLoading(true);
-            const res = await api.get('/projects/open');
-            if (res.data.success) {
-                setProjects(res.data.projects);
+            // Fetch open projects and my proposals in parallel
+            const [projRes, propRes] = await Promise.all([
+                api.get('/projects/open'),
+                api.get('/proposals/my-proposals').catch(() => ({ data: { proposals: [] } }))
+            ]);
+
+            if (projRes.data.success) {
+                const myBiddedProjectIds = new Set(
+                    (propRes.data.proposals || []).map(p => p.project._id)
+                );
+                
+                // Only show projects we haven't bid on yet
+                const availableProjects = projRes.data.projects.filter(
+                    p => !myBiddedProjectIds.has(p._id)
+                );
+                setProjects(availableProjects);
             }
         } catch (err) {
             console.error('Failed to fetch projects', err);
