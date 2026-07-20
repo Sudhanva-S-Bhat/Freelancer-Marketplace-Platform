@@ -23,6 +23,27 @@ const inp = {
 const onFocus = e => { e.target.style.borderColor = 'var(--cyan)'; e.target.style.boxShadow = '0 0 0 4px rgba(47,216,238,.1)'; };
 const onBlur  = e => { e.target.style.borderColor = 'var(--border-strong)'; e.target.style.boxShadow = 'none'; };
 
+/* ── Star Badge (inline rating display) ─────── */
+const StarBadge = ({ avg, total }) => {
+    if (!avg) {
+        // No reviews yet — show 5 empty blue stars
+        return (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                {[1,2,3,4,5].map(n => (
+                    <span key={n} style={{ fontSize: 13, color: 'var(--cyan)', lineHeight: 1 }}>☆</span>
+                ))}
+                <span style={{ fontSize: 10, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)', marginLeft: 4 }}>New</span>
+            </span>
+        );
+    }
+    return (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 99, background: 'rgba(245,185,92,.1)', border: '1px solid rgba(245,185,92,.25)', fontSize: 11.5, fontWeight: 700, color: '#f5b93c', fontFamily: 'var(--font-mono)' }}>
+            <span style={{ color: '#f5b93c', fontSize: 11 }}>★</span>
+            {avg} <span style={{ color: 'var(--text-faint)', fontWeight: 400 }}>({total})</span>
+        </span>
+    );
+};
+
 /* ── Message Modal ───────────────────────────── */
 function MessageModal({ freelancer, onClose }) {
     const [text,      setText]      = useState('');
@@ -196,11 +217,12 @@ function MessageModal({ freelancer, onClose }) {
 }
 
 /* ── Freelancer Card ─────────────────────────── */
-function FreelancerCard({ f, index, onMessage }) {
+function FreelancerCard({ freelancer: f, index, onMessage, ratings = {} }) {
     const name    = f.user?.fullName || 'Freelancer';
     const initial = name[0].toUpperCase();
     const skills  = f.skills?.slice(0, 4) || [];
     const extra   = (f.skills?.length || 0) - 4;
+    const rating  = ratings[f.user?._id] || null;
 
     return (
         <motion.div
@@ -219,8 +241,11 @@ function FreelancerCard({ f, index, onMessage }) {
                     {initial}
                 </div>
                 <div style={{ flex: 1 }}>
-                    <p style={{ fontWeight: 700, fontSize: 16, margin: '0 0 2px', letterSpacing: '-.02em' }}>{name}</p>
-                    <p style={{ color: 'var(--cyan)', fontSize: 13, margin: '0 0 4px', fontWeight: 500 }}>{f.professionalTitle || 'Freelancer'}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <p style={{ fontWeight: 700, fontSize: 16, margin: 0, letterSpacing: '-.02em' }}>{name}</p>
+                        <StarBadge avg={rating?.avg} total={rating?.total} />
+                    </div>
+                    <p style={{ color: 'var(--cyan)', fontSize: 13, margin: '4px 0', fontWeight: 500 }}>{f.professionalTitle || 'Freelancer'}</p>
                     {(f.city || f.country) && (
                         <p style={{ color: 'var(--text-faint)', fontSize: 12, margin: 0, display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'var(--font-mono)' }}>
                             <MapPin size={11} /> {[f.city, f.country].filter(Boolean).join(', ')}
@@ -298,12 +323,29 @@ function ClientSearchFreelancers() {
     const [search,      setSearch]      = useState('');
     const [category,    setCategory]    = useState('All');
     const [msgTarget,   setMsgTarget]   = useState(null);
+    const [ratings,     setRatings]     = useState({});
 
     useEffect(() => {
         (async () => {
             try {
                 const res = await api.get('/freelancer/search');
-                if (res.data.success) { setFreelancers(res.data.freelancers); setFiltered(res.data.freelancers); }
+                if (res.data.success) { 
+                    const list = res.data.freelancers;
+                    setFreelancers(list); 
+                    setFiltered(list); 
+                    
+                    // Fetch ratings in parallel
+                    const userIds = list.map(f => f.user?._id).filter(Boolean);
+                    const ratingResults = await Promise.all(
+                        userIds.map(uid => api.get(`/reviews/user/${uid}`).catch(() => null))
+                    );
+                    const ratingMap = {};
+                    userIds.forEach((uid, idx) => {
+                        const data = ratingResults[idx]?.data;
+                        if (data?.averageRating) ratingMap[uid] = { avg: data.averageRating, total: data.totalReviews };
+                    });
+                    setRatings(ratingMap);
+                }
             } catch (err) { setError(err.response?.data?.message || 'Failed to load freelancers.'); }
             finally { setLoading(false); }
         })();
@@ -379,10 +421,10 @@ function ClientSearchFreelancers() {
                     )}
                 </div>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 20 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
                     <AnimatePresence>
                         {filtered.map((f, i) => (
-                            <FreelancerCard key={f._id} f={f} index={i} onMessage={setMsgTarget} />
+                            <FreelancerCard key={f._id} freelancer={f} index={i} onMessage={setMsgTarget} ratings={ratings} />
                         ))}
                     </AnimatePresence>
                 </div>
