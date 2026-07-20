@@ -7,11 +7,19 @@
     "@emailjs/browser": "^4.4.1",
     "@stripe/stripe-js": "^4.1.0"
   },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "install-all": "npm install && npm install --prefix backend && npm install --prefix freelancing",
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm start --prefix freelancing\"",
+    "start": "concurrently \"npm start --prefix backend\" \"npm start --prefix freelancing\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
 }
