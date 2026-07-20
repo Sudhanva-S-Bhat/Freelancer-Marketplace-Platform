@@ -161,14 +161,17 @@ exports.editProposal = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
 
-    // Only pending proposals can be edited
-    if (proposal.status !== 'pending') {
-      return res.status(400).json({ success: false, message: 'Only pending proposals can be edited' });
+    // Allow editing pending or rejected proposals
+    if (proposal.status !== 'pending' && proposal.status !== 'rejected') {
+      return res.status(400).json({ success: false, message: 'Only pending or rejected proposals can be edited' });
     }
 
     if (coverLetter)   proposal.coverLetter   = coverLetter;
     if (bidAmount)     proposal.bidAmount     = bidAmount;
     if (estimatedTime) proposal.estimatedTime = estimatedTime;
+
+    // Reset rejected bids back to pending so client sees the updated bid
+    if (proposal.status === 'rejected') proposal.status = 'pending';
 
     await proposal.save();
 
