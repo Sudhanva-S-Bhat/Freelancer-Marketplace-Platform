@@ -261,7 +261,7 @@ export default function FreelancerContracts() {
                                                 </span>
                                             ) : (
                                                 <button onClick={() => setReviewTarget(contract)}
-                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 999, border: 'none', background: 'linear-gradient(90deg,#f5b93c,var(--cyan))', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', boxShadow: '0 4px 14px rgba(245,185,92,.25)' }}
+                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 999, border: 'none', background: 'linear-gradient(90deg,#f5b93c,var(--cyan))', color: '#fff !important', fontWeight: 700, fontSize: 13, cursor: 'pointer', boxShadow: '0 4px 14px rgba(245,185,92,.25)' }}
                                                 >
                                                     <Star size={13} /> Rate Client
                                                 </button>

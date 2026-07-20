@@ -477,7 +477,7 @@ function ClientProjectDetails() {
                                 display: 'inline-flex', alignItems: 'center', gap: 8,
                                 padding: '9px 20px', borderRadius: 999,
                                 border: 'none', background: 'linear-gradient(90deg,#f5b93c,var(--cyan))',
-                                color: '#fff', fontWeight: 700, fontSize: 13.5, cursor: 'pointer',
+                                color: '#fff !important', fontWeight: 700, fontSize: 13.5, cursor: 'pointer',
                                 fontFamily: 'var(--font-body)', boxShadow: '0 4px 16px rgba(245,185,92,.3)',
                                 transition: 'box-shadow .2s',
                             }}
