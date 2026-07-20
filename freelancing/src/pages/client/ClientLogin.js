@@ -22,7 +22,8 @@ function ClientLogin() {
                 navigate(res.data.user.profileCompleted ? "/client/dashboard" : "/client/complete-profile");
             } else setError(res.data.message);
         } catch (err) {
-            setError(err.response?.data?.message || "Login failed. Check your credentials.");
+            const serverError = err.response?.data?.error || err.response?.data?.message || "Login failed. Check your credentials.";
+            setError(serverError);
         } finally { setLoading(false); }
     };
 
