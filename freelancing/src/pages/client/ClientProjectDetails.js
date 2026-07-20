@@ -365,7 +365,6 @@ function StripePaymentModal({ amount, freelancerName, contractId, onClose }) {
     const [expiry,    setExpiry]    = useState('');
     const [cvc,       setCvc]       = useState('');
     const [processing,setProcessing]= useState(false);
-    const [success,   setSuccess]   = useState(false);
 
     const formatCard = (val) => {
         const clear = val.replace(/\D/g, '');
@@ -424,14 +423,7 @@ function StripePaymentModal({ amount, freelancerName, contractId, onClose }) {
                 </div>
 
                 <div style={{ padding: '24px 28px' }}>
-                    {success ? (
-                        <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                            <div style={{ fontSize: 44, color: 'var(--ok)', marginBottom: 12 }}>✓</div>
-                            <h4 style={{ color: 'var(--text-primary)', margin: '0 0 6px 0' }}>Payment Escrowed!</h4>
-                            <p style={{ color: 'var(--text-dim)', fontSize: 13.5 }}>Starting contract with {freelancerName}...</p>
-                        </div>
-                    ) : (
-                        <form onSubmit={handlePay} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <form onSubmit={handlePay} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                             <div style={{ padding: '16px 20px', background: 'rgba(99,91,255,.05)', border: '1px solid rgba(99,91,255,.15)', borderRadius: 8 }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: 'var(--text-dim)' }}>
                                     <span>Escrow Amount</span>
@@ -473,7 +465,6 @@ function StripePaymentModal({ amount, freelancerName, contractId, onClose }) {
                                 )}
                             </button>
                         </form>
-                    )}
                 </div>
             </motion.div>
         </motion.div>
