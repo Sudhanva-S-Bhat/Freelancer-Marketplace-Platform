@@ -19,6 +19,10 @@
       "destination": "/backend/app.js"
     },
     {
+      "source": "/(static/.*|.*\\..*)",
+      "destination": "/freelancing/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/freelancing/index.html"
     }
