@@ -15,24 +15,36 @@ function ClientDashboard() {
     const navigate = useNavigate();
     
     const [projects, setProjects] = useState([]);
+    const [stats, setStats] = useState({ activeContracts: 0, pendingProposals: 0, unreadMessages: 0 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
     useEffect(() => {
-        const fetchProjects = async () => {
+        const fetchData = async () => {
             try {
-                const res = await api.get("/projects/client/my-projects");
-                if (res.data.success) {
-                    setProjects(res.data.projects);
-                }
+                // Fetch projects — this is the critical call
+                const projectsRes = await api.get("/projects/client/my-projects");
+                if (projectsRes.data.success) setProjects(projectsRes.data.projects);
             } catch (err) {
                 setError(err.response?.data?.message || "Failed to load projects");
             } finally {
                 setLoading(false);
             }
+
+            // Fetch stats separately — a failure here won't break the dashboard
+            try {
+                const statsRes = await api.get("/client/stats");
+                if (statsRes.data.success) setStats({
+                    activeContracts: statsRes.data.activeContracts,
+                    pendingProposals: statsRes.data.pendingProposals,
+                    unreadMessages: statsRes.data.unreadMessages,
+                });
+            } catch {
+                // Stats are non-critical — silently ignore if they fail
+            }
         };
 
-        fetchProjects();
+        fetchData();
     }, []);
 
     const getStatusBadgeVariant = (status) => {
