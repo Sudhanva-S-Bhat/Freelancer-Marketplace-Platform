@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Briefcase, Users, MessageSquare,
-  FileText, LogOut, Bell, Search, Menu, X, Sparkles,
+  FileText, LogOut, Bell, Search, Menu, X,
   CheckCircle, AlertCircle, DollarSign, Clock, UserCog
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';

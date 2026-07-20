@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileText, DollarSign, Clock, CheckCircle, XCircle, AlertCircle, Send, X, Pencil } from 'lucide-react';
+import { FileText, DollarSign, Clock, XCircle, AlertCircle, Send, X, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axiosInstance';
 import '../../styles/dashboard.css';
@@ -25,93 +25,6 @@ const inp = {
 const onFocus = e => { e.target.style.borderColor = 'var(--cyan)'; e.target.style.boxShadow = '0 0 0 4px rgba(47,216,238,.1)'; };
 const onBlur  = e => { e.target.style.borderColor = 'var(--border-strong)'; e.target.style.boxShadow = 'none'; };
 
-/* ── Message Modal ───────────────────────────── */
-function MessageModal({ proposal, onClose }) {
-    const [text,    setText]    = useState('');
-    const [sending, setSending] = useState(false);
-    const [sent,    setSent]    = useState(false);
-    const [error,   setError]   = useState('');
-
-    useEffect(() => {
-        const handler = e => { if (e.key === 'Escape') onClose(); };
-        window.addEventListener('keydown', handler);
-        return () => window.removeEventListener('keydown', handler);
-    }, [onClose]);
-
-    const handleSend = async e => {
-        e.preventDefault();
-        if (!text.trim()) return;
-        setSending(true); setError('');
-        try {
-            const res = await api.post('/messages/send', {
-                receiverId: proposal.project?.client || proposal.clientId,
-                projectId:  proposal.project?._id,
-                content:    text.trim(),
-            });
-            if (res.data.success) { setSent(true); setTimeout(onClose, 1600); }
-        } catch (err) { setError(err.response?.data?.message || 'Failed to send.'); }
-        finally { setSending(false); }
-    };
-
-    const name = proposal.project?.client?.fullName || proposal.clientName || 'Client';
-    const proj = proposal.project?.title || 'Project';
-    const initial = name[0]?.toUpperCase() || 'C';
-
-    return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={onClose}
-            style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
-        >
-            <motion.div initial={{ opacity: 0, scale: .92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: .92, y: 20 }}
-                transition={{ ease: [.16,.84,.44,1], duration: .3 }}
-                onClick={e => e.stopPropagation()}
-                style={{ width: '100%', maxWidth: 500, background: 'linear-gradient(135deg,rgba(13,17,32,.98),rgba(8,11,20,1))', borderRadius: 'var(--r-xl)', border: '1px solid var(--border-strong)', boxShadow: '0 32px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(47,216,238,.12)', overflow: 'hidden', position: 'relative' }}
-            >
-                <div style={{ position: 'absolute', top: 0, left: '15%', right: '15%', height: 1, background: 'linear-gradient(90deg,transparent,rgba(47,216,238,.4),transparent)', pointerEvents: 'none' }} />
-
-                {/* Header */}
-                <div style={{ padding: '22px 26px 18px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg,var(--cyan),var(--violet))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 16, color: '#04070d', fontFamily: 'var(--font-mono)', boxShadow: '0 0 16px rgba(47,216,238,.3)' }}>{initial}</div>
-                        <div>
-                            <p style={{ fontWeight: 700, fontSize: 14.5, margin: 0 }}>{name}</p>
-                            <p style={{ color: 'var(--cyan)', fontSize: 12, margin: 0, fontFamily: 'var(--font-mono)' }}>re: {proj}</p>
-                        </div>
-                    </div>
-                    <button onClick={onClose} style={{ background: 'rgba(255,255,255,.05)', border: '1px solid var(--border-strong)', color: 'var(--text-dim)', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                        <X size={14} />
-                    </button>
-                </div>
-
-                {/* Body */}
-                <form onSubmit={handleSend} style={{ padding: '22px 26px' }}>
-                    {sent ? (
-                        <motion.div initial={{ opacity: 0, scale: .9 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: 'center', padding: '20px 0' }}>
-                            <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(62,230,168,.1)', border: '1px solid rgba(62,230,168,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', boxShadow: '0 0 24px -8px rgba(62,230,168,.5)' }}>
-                                <CheckCircle size={24} color="var(--ok)" />
-                            </div>
-                            <p style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>Message Sent!</p>
-                            <p style={{ color: 'var(--text-dim)', fontSize: 13.5 }}>Check Messages to continue the conversation.</p>
-                        </motion.div>
-                    ) : (
-                        <>
-                            {error && <div className="error-banner" style={{ marginBottom: 14 }}>{error}</div>}
-                            <label style={{ display: 'block', fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 10 }}>Your Message</label>
-                            <textarea rows={5} placeholder={`Hi, I wanted to discuss the project…`} value={text} onChange={e => setText(e.target.value)}
-                                style={{ ...inp, resize: 'vertical', lineHeight: 1.65 }} onFocus={onFocus} onBlur={onBlur} autoFocus />
-                            <div style={{ display: 'flex', gap: 10, marginTop: 18, justifyContent: 'flex-end' }}>
-                                <button type="button" onClick={onClose} style={{ padding: '10px 20px', borderRadius: 999, border: '1px solid var(--border-strong)', background: 'rgba(255,255,255,.03)', color: 'var(--text-dim)', fontSize: 13.5, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>Cancel</button>
-                                <button type="submit" disabled={!text.trim() || sending} style={{ padding: '10px 22px', borderRadius: 999, border: 'none', background: text.trim() && !sending ? 'linear-gradient(90deg,var(--cyan),var(--violet))' : 'rgba(255,255,255,.06)', color: text.trim() && !sending ? '#04070d' : 'var(--text-faint)', fontWeight: 700, fontSize: 13.5, cursor: text.trim() && !sending ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-body)' }}>
-                                    {sending ? <><span style={{ width: 13, height: 13, borderRadius: '50%', border: '2px solid rgba(4,7,13,.3)', borderTopColor: '#04070d', animation: 'spin .7s linear infinite', display: 'inline-block' }} /> Sending…</> : <><Send size={13} /> Send</>}
-                                </button>
-                            </div>
-                        </>
-                    )}
-                </form>
-            </motion.div>
-        </motion.div>
-    );
-}
 
 /* ── Edit Modal ──────────────────────────────── */
 function EditModal({ proposal, onClose, onSaved }) {
@@ -282,8 +195,8 @@ function FreelancerBids() {
                                     </div>
                                 </div>
 
-                                {/* Edit button — only for pending bids */}
-                                {proposal.status === 'pending' && (
+                                {/* Edit button — for pending and rejected bids */}
+                                {(proposal.status === 'pending' || proposal.status === 'rejected') && (
                                     <button onClick={() => setEditTarget(proposal)}
                                         style={{ padding: '10px 20px', borderRadius: 999, border: '1px solid rgba(139,107,245,.35)', background: 'rgba(139,107,245,.08)', color: 'var(--violet)', fontWeight: 600, fontSize: 13.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-body)', transition: 'background .2s', flexShrink: 0 }}
                                         onMouseOver={e => e.currentTarget.style.background = 'rgba(139,107,245,.18)'}
