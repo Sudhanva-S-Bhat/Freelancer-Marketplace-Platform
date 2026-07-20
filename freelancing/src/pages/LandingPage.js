@@ -153,20 +153,20 @@ const LandingPage = () => {
           <div className="footer-links">
             <div>
               <h4>For Clients</h4>
-              <a href="#">How to Hire</a>
-              <a href="#">Talent Marketplace</a>
-              <a href="#">Project Catalog</a>
+              <a href="/">How to Hire</a>
+              <a href="/">Talent Marketplace</a>
+              <a href="/">Project Catalog</a>
             </div>
             <div>
               <h4>For Freelancers</h4>
-              <a href="#">How to Find Work</a>
-              <a href="#">Create Profile</a>
+              <a href="/">How to Find Work</a>
+              <a href="/">Create Profile</a>
             </div>
             <div>
               <h4>Company</h4>
-              <a href="#">About Us</a>
-              <a href="#">Careers</a>
-              <a href="#">Contact Support</a>
+              <a href="/">About Us</a>
+              <a href="/">Careers</a>
+              <a href="/">Contact Support</a>
             </div>
           </div>
         </div>
