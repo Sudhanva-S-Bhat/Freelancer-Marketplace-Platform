@@ -7,10 +7,7 @@ import {
 } from "lucide-react";
 import api from "../../api/axiosInstance";
 import { motion, AnimatePresence } from "framer-motion";
-import { loadStripe } from '@stripe/stripe-js';
 import "../../styles/dashboard.css";
-
-const stripePromise = loadStripe('pk_test_51TvIrg3UZTpexDFJxbtIeWY4T6NNvqMnj7FPlygCIJJmqciwPQrWO3SZHsvTtWt0upXjq8WIuFn9MYa4TI695C4z00zsaoJ0ER');
 
 /* ── helpers ─────────────────────────────────── */
 const statusColor = {
