@@ -478,6 +478,10 @@ function StripePaymentModal({ amount, freelancerName, contractId, onClose }) {
                 };
 
                 const rzpObj = new window.Razorpay(rzpOptions);
+                rzpObj.on('payment.failed', function (response) {
+                    alert(`Payment Failed: ${response.error.description || 'Transaction declined'}`);
+                    setProcessing(false);
+                });
                 rzpObj.open();
             } catch (err) {
                 console.error(err);
