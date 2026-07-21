@@ -10,7 +10,8 @@ async function verifyToken(req, res, next) {
       return res.status(401).json({ success: false, message: 'No token provided' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const secret = process.env.JWT_SECRET || 'default_jwt_secret_fallback_lumina';
+    const decoded = jwt.verify(token, secret);
     const user = await User.findById(decoded.id).select('-passwordHash');
 
     if (!user) {
