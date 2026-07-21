@@ -72,7 +72,7 @@ export default function Subscriptions() {
         setProcessing(true);
         try {
             // Simulated transaction to unlock premium status
-            const res = await api.post('/auth/me'); // simple ping or user info
+            await api.post('/auth/me'); // simple ping or user info
             setTimeout(() => {
                 setSuccessMessage(`Subscription to ${selectedPlan.name} Plan activated successfully! Enjoy your 1st month free.`);
                 setProcessing(false);
@@ -189,7 +189,6 @@ export default function Subscriptions() {
                                     width: '100%',
                                     padding: '14px 24px',
                                     borderRadius: 99,
-                                    border: 'none',
                                     background: plan.popular ? 'linear-gradient(90deg,#635bff,var(--cyan))' : 'rgba(255,255,255,.05)',
                                     border: plan.popular ? 'none' : '1px solid var(--border-strong)',
                                     color: '#fff',

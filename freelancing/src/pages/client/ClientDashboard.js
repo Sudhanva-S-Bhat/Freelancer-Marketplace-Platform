@@ -146,42 +146,7 @@ function ClientDashboard() {
                         </motion.div>
                     </motion.div>
 
-                    {/* Chart Section */}
-                    <motion.div variants={itemVariants}>
-                        <Card className="dashboard-chart-section">
-                            <div style={{ padding: '24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <h3 style={{ fontSize: '18px', margin: 0 }}>Hiring Activity Overview</h3>
-                            </div>
-                            <div style={{ padding: '24px', height: '300px' }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart
-                                        data={[
-                                            { name: 'Jan', posts: 1 },
-                                            { name: 'Feb', posts: 2 },
-                                            { name: 'Mar', posts: 1 },
-                                            { name: 'Apr', posts: 4 },
-                                            { name: 'May', posts: 3 },
-                                            { name: 'Jun', posts: 5 },
-                                            { name: 'Jul', posts: projects.length }
-                                        ]}
-                                        margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                                    >
-                                        <defs>
-                                            <linearGradient id="colorPosts" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.8}/>
-                                                <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                                        <XAxis dataKey="name" stroke="var(--text-muted)" tick={{fill: 'var(--text-muted)'}} axisLine={false} tickLine={false} />
-                                        <YAxis stroke="var(--text-muted)" tick={{fill: 'var(--text-muted)'}} axisLine={false} tickLine={false} />
-                                        <Tooltip />
-                                        <Area type="monotone" dataKey="posts" stroke="var(--primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorPosts)" />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </Card>
-                    </motion.div>
+
 
             <motion.div variants={itemVariants}>
             <Card className="dashboard-projects-section">
