@@ -50,6 +50,7 @@ const LandingPage = () => {
           <div className="nav-links">
             <Link to="/freelancers">Find Talent</Link>
             <Link to="/projects">Find Work</Link>
+            <a href="#pricing-plans">Plans & Pricing</a>
             <Link to="/about">Why Us</Link>
           </div>
           <div className="nav-actions">
