@@ -198,17 +198,20 @@ function FreelancerBids() {
                                 {/* Action Button Group */}
                                 <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
                                     {/* Message Client button */}
-                                    {proposal.project?.client && (
-                                        <button onClick={() => navigate('/freelancer/messages', {
-                                            state: {
-                                                initialActiveConv: {
-                                                    projectId: proposal.project._id,
-                                                    projectTitle: proposal.project.title,
-                                                    otherUserId: proposal.project.client._id,
-                                                    otherUserName: proposal.project.client.fullName || 'Client'
+                                    {(proposal.project?.clientId || proposal.project?.client) && (
+                                        <button onClick={() => {
+                                            const clientObj = proposal.project.clientId || proposal.project.client;
+                                            navigate('/freelancer/messages', {
+                                                state: {
+                                                    initialActiveConv: {
+                                                        projectId: proposal.project._id,
+                                                        projectTitle: proposal.project.title,
+                                                        otherUserId: clientObj._id || clientObj,
+                                                        otherUserName: clientObj.fullName || 'Client'
+                                                    }
                                                 }
-                                            }
-                                        })}
+                                            });
+                                        }}
                                             style={{ padding: '10px 20px', borderRadius: 999, border: '1px solid rgba(47,216,238,.35)', background: 'rgba(47,216,238,.08)', color: 'var(--cyan)', fontWeight: 600, fontSize: 13.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, fontFamily: 'var(--font-body)', transition: 'background .2s' }}
                                             onMouseOver={e => e.currentTarget.style.background = 'rgba(47,216,238,.18)'}
                                             onMouseOut={e => e.currentTarget.style.background = 'rgba(47,216,238,.08)'}
