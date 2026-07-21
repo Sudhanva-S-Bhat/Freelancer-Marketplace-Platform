@@ -46,8 +46,8 @@ exports.getMyProposals = async (req, res) => {
     const proposals = await Proposal.find({ freelancer: freelancerId })
       .populate({
         path: 'project',
-        select: 'title budget status client',
-        populate: { path: 'client', select: 'fullName username' }
+        select: 'title budget status clientId',
+        populate: { path: 'clientId', select: 'fullName username' }
       })
       .sort({ createdAt: -1 });
 
