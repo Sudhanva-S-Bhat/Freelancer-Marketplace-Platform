@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Briefcase, Users, MessageSquare,
   FileText, LogOut, Bell, Search, Menu, X,
-  CheckCircle, AlertCircle, DollarSign, Clock, UserCog
+  CheckCircle, AlertCircle, DollarSign, Clock, UserCog, CreditCard
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axiosInstance';
@@ -223,6 +223,7 @@ const DashboardLayout = ({ role }) => {
     { name: 'My Projects',     path: '/client/my-projects',        icon: FileText        },
     { name: 'Find Freelancers',path: '/client/search-freelancers', icon: Users           },
     { name: 'Messages',        path: '/client/messages',           icon: MessageSquare   },
+    { name: 'Subscriptions',   path: '/client/subscriptions',      icon: CreditCard      },
     { name: 'Edit Profile',    path: '/client/edit-profile',       icon: UserCog         },
   ];
 
@@ -232,6 +233,7 @@ const DashboardLayout = ({ role }) => {
     { name: 'My Bids',      path: '/freelancer/bids',            icon: Clock           },
     { name: 'My Contracts', path: '/freelancer/contracts',       icon: Briefcase       },
     { name: 'Messages',     path: '/freelancer/messages',        icon: MessageSquare   },
+    { name: 'Subscriptions',path: '/freelancer/subscriptions',   icon: CreditCard      },
     { name: 'Edit Profile',    path: '/freelancer/edit-profile',    icon: UserCog         },
   ];
 
