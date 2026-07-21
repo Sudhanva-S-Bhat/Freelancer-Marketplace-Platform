@@ -31,6 +31,7 @@ import FreelancerBids from "./pages/freelancer/FreelancerBids";
 import FreelancerMessages from "./pages/freelancer/FreelancerMessages";
 import FreelancerEditProfile from "./pages/freelancer/FreelancerEditProfile";
 import FreelancerContracts from "./pages/freelancer/FreelancerContracts";
+import Subscriptions from "./pages/shared/Subscriptions";
 
 // Aurora background — copied from lumina.html
 function AuroraBackground() {
@@ -193,8 +194,9 @@ function App() {
                         <Route path="search-freelancers" element={<ClientSearchFreelancers />} />
                         <Route path="messages" element={<ClientMessages />} />
                         <Route path="edit-profile" element={<ClientEditProfile />} />
+                        <Route path="subscriptions" element={<Subscriptions />} />
                     </Route>
-
+ 
                     {/* Freelancer Authentication */}
                     <Route path="/freelancer/register" element={<FreelancerRegister />} />
                     <Route path="/freelancer/login" element={<FreelancerLogin />} />
@@ -206,7 +208,7 @@ function App() {
                             </ProtectedRoute>
                         }
                     />
-
+ 
                     {/* Freelancer Dashboard */}
                     <Route
                         path="/freelancer"
@@ -223,6 +225,7 @@ function App() {
                         <Route path="messages" element={<FreelancerMessages />} />
                         <Route path="edit-profile" element={<FreelancerEditProfile />} />
                         <Route path="contracts" element={<FreelancerContracts />} />
+                        <Route path="subscriptions" element={<Subscriptions />} />
                     </Route>
 
                     {/* Catch-all */}
