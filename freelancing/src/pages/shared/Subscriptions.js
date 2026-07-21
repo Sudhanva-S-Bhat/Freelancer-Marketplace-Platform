@@ -17,7 +17,7 @@ export default function Subscriptions() {
             priceMonthly: 0,
             priceAnnual: 0,
             features: [
-                'Submit up to 10 bids/month',
+                'Submit up to 5 bids/month',
                 'Basic profile customization',
                 'Standard escrow security payments',
                 'Direct messaging with clients'
@@ -141,7 +141,8 @@ export default function Subscriptions() {
                                 display: 'flex',
                                 flexDirection: 'column',
                                 border: plan.popular ? '2px solid var(--cyan)' : '1px solid var(--border)',
-                                relative: 'true',
+                                position: 'relative',
+                                overflow: 'visible',
                                 background: plan.popular ? 'linear-gradient(180deg, rgba(47,216,238,.03), rgba(0,0,0,0))' : 'rgba(10,13,26,.6)',
                                 boxShadow: plan.popular ? '0 20px 50px rgba(47,216,238,.12)' : 'none'
                             }}
