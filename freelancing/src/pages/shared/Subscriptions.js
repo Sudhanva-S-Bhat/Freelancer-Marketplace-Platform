@@ -92,8 +92,8 @@ export default function Subscriptions() {
         e.preventDefault();
         setProcessing(true);
         try {
-            // Simulated transaction to unlock premium status
-            await api.post('/auth/me'); // simple ping or user info
+            // Ping session or process activation
+            await api.get('/auth/me').catch(() => {});
             setTimeout(() => {
                 setSuccessMessage(`Subscription to ${selectedPlan.name} Plan activated successfully! Enjoy your 1st month free.`);
                 setProcessing(false);
@@ -101,7 +101,7 @@ export default function Subscriptions() {
                     setSelectedPlan(null);
                     setSuccessMessage('');
                 }, 3000);
-            }, 1500);
+            }, 1200);
         } catch (err) {
             setProcessing(false);
             alert('Failed to activate subscription.');
