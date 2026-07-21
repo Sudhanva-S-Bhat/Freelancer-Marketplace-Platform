@@ -239,7 +239,16 @@ export default function FreelancerContracts() {
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => navigate(`/freelancer/messages`)}
+                                            onClick={() => navigate('/freelancer/messages', {
+                                                state: {
+                                                    initialActiveConv: {
+                                                        projectId: contract.project._id,
+                                                        projectTitle: contract.project.title,
+                                                        otherUserId: contract.project.clientId?._id || contract.project.clientId,
+                                                        otherUserName: contract.project.clientId?.fullName || 'Client'
+                                                    }
+                                                }
+                                            })}
                                             style={{ borderColor: 'var(--border-strong)', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: 6 }}
                                         >
                                             <MessageSquare size={14} /> Message Client
