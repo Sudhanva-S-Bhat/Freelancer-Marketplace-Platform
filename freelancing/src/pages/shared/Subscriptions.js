@@ -169,9 +169,11 @@ export default function Subscriptions() {
                             }}
                         >
                             {plan.popular && (
-                                <span style={{ position: 'absolute', top: -14, right: 24, padding: '4px 14px', borderRadius: 99, background: 'linear-gradient(90deg,#635bff,var(--cyan))', color: '#fff', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', boxShadow: '0 4px 12px rgba(47,216,238,.35)' }}>
-                                    Most Popular
-                                </span>
+                                <div style={{ marginBottom: 14 }}>
+                                    <span style={{ padding: '4px 14px', borderRadius: 99, background: 'linear-gradient(90deg,#635bff,var(--cyan))', color: '#fff', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', boxShadow: '0 4px 12px rgba(47,216,238,.35)', display: 'inline-block' }}>
+                                        Most Popular
+                                    </span>
+                                </div>
                             )}
 
                             {/* Plan meta */}
