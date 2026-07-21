@@ -132,6 +132,64 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="pricing-plans" style={{ padding: '80px 24px', maxWidth: 1100, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+          <Badge variant="primary">Flexible Pricing</Badge>
+          <h2 style={{ fontSize: 32, marginTop: 16, fontWeight: 800, color: '#fff' }}>Simple, Transparent Plans</h2>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: 540, margin: '12px auto 0' }}>Select a plan to start your 1st month free trial. Cancel anytime.</p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
+          {/* Basic Plan */}
+          <Card hover style={{ padding: 32, display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ fontSize: 20, margin: '0 0 8px 0', color: '#fff' }}>Basic</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 13.5, marginBottom: 24 }}>Essential tools to get started</p>
+            <div style={{ fontSize: 36, fontWeight: 800, color: '#fff', marginBottom: 24 }}>$0 <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--text-muted)' }}>/ mo</span></div>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 32px 0', display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13.5, color: 'var(--text-secondary)' }}>
+              <li>✓ Submit up to 5 bids/month</li>
+              <li>✓ Standard escrow security</li>
+              <li>✓ Direct client messaging</li>
+            </ul>
+            <Link to="/RoleSelect?mode=register" style={{ marginTop: 'auto' }}>
+              <Button variant="outline" style={{ width: '100%' }}>Get Started Free</Button>
+            </Link>
+          </Card>
+
+          {/* Pro Plan */}
+          <Card hover style={{ padding: 32, display: 'flex', flexDirection: 'column', border: '2px solid var(--primary)', position: 'relative', background: 'rgba(99,91,255,.05)' }}>
+            <span style={{ position: 'absolute', top: -14, right: 24, padding: '4px 14px', borderRadius: 99, background: 'linear-gradient(90deg,#635bff,#2fd8ee)', color: '#fff', fontSize: 11, fontWeight: 800, textTransform: 'uppercase' }}>Most Popular</span>
+            <h3 style={{ fontSize: 20, margin: '0 0 8px 0', color: '#fff' }}>Professional</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 13.5, marginBottom: 24 }}>Unlock premium reach & AI matching</p>
+            <div style={{ fontSize: 36, fontWeight: 800, color: '#fff', marginBottom: 24 }}>$19 <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--text-muted)' }}>/ mo</span></div>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 32px 0', display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13.5, color: 'var(--text-secondary)' }}>
+              <li>✓ <strong>1st Month Free Trial</strong></li>
+              <li>✓ Unlimited bid & project postings</li>
+              <li>✓ Verified Pro badge & search priority</li>
+              <li>✓ 24/7 dedicated support</li>
+            </ul>
+            <Link to="/RoleSelect?mode=register" style={{ marginTop: 'auto' }}>
+              <Button variant="primary" style={{ width: '100%' }}>Start 1 Month Free</Button>
+            </Link>
+          </Card>
+
+          {/* Enterprise Plan */}
+          <Card hover style={{ padding: 32, display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ fontSize: 20, margin: '0 0 8px 0', color: '#fff' }}>Enterprise</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 13.5, marginBottom: 24 }}>For power users & company teams</p>
+            <div style={{ fontSize: 36, fontWeight: 800, color: '#fff', marginBottom: 24 }}>$49 <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--text-muted)' }}>/ mo</span></div>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 32px 0', display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13.5, color: 'var(--text-secondary)' }}>
+              <li>✓ Zero platform transaction fees</li>
+              <li>✓ Custom branding & header logo</li>
+              <li>✓ Dedicated hiring manager</li>
+            </ul>
+            <Link to="/RoleSelect?mode=register" style={{ marginTop: 'auto' }}>
+              <Button variant="outline" style={{ width: '100%' }}>Contact Sales</Button>
+            </Link>
+          </Card>
+        </div>
+      </section>
+
       {/* Call to Action */}
       <section className="cta-section" ref={ctaRef}>
         <div className={`cta-container scroll-animate ${ctaVisible ? 'visible' : ''}`}>

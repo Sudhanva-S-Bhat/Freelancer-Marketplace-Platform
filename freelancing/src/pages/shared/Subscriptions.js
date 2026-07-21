@@ -2,9 +2,13 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Star, Shield, Zap, Sparkles, X, CreditCard } from 'lucide-react';
 import api from '../../api/axiosInstance';
+import { useAuth } from '../../context/AuthContext';
 import '../../styles/dashboard.css';
 
 export default function Subscriptions() {
+    const { user } = useAuth();
+    const isClient = user?.role === 'CLIENT';
+
     const [billingPeriod, setBillingPeriod] = useState('monthly'); // 'monthly' or 'annual'
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [processing, setProcessing] = useState(false);
@@ -13,10 +17,15 @@ export default function Subscriptions() {
     const plans = [
         {
             name: 'Basic',
-            tagline: 'Essential tools for getting started.',
+            tagline: isClient ? 'Essential tools for hiring talent.' : 'Essential tools for getting started.',
             priceMonthly: 0,
             priceAnnual: 0,
-            features: [
+            features: isClient ? [
+                'Post up to 2 active projects/month',
+                'Access standard candidate search',
+                'Direct messaging with applicants',
+                'Standard escrow security payments'
+            ] : [
                 'Submit up to 5 bids/month',
                 'Basic profile customization',
                 'Standard escrow security payments',
@@ -27,10 +36,16 @@ export default function Subscriptions() {
         },
         {
             name: 'Professional',
-            tagline: 'Maximize matches & unlock premium tools.',
-            priceMonthly: 19,
-            priceAnnual: 15, // 15 * 12 = 180 / yr
-            features: [
+            tagline: isClient ? 'Boost project reach & AI candidate matching.' : 'Maximize matches & unlock premium tools.',
+            priceMonthly: 29,
+            priceAnnual: 22,
+            features: isClient ? [
+                'Post up to 10 active projects/month',
+                'Featured Job badge on all postings',
+                'AI candidate matching recommendations',
+                '1st Month Free Trial included',
+                '24/7 dedicated support priority'
+            ] : [
                 'Unlimited bid submissions',
                 'Verified Pro badge on profile',
                 'Priority ranking in client searches',
@@ -43,16 +58,22 @@ export default function Subscriptions() {
             trial: '1st Month Free'
         },
         {
-            name: 'Enterprise / Elite',
-            tagline: 'For agency power-users & high volumes.',
-            priceMonthly: 49,
-            priceAnnual: 39,
-            features: [
+            name: 'Enterprise',
+            tagline: isClient ? 'For high volume hiring & company teams.' : 'For agency power-users & high volumes.',
+            priceMonthly: 69,
+            priceAnnual: 55,
+            features: isClient ? [
+                'Unlimited active project postings',
+                'Zero client transaction platform fees',
+                'Custom company logo & header banner',
+                'Dedicated hiring success manager',
+                'Top placement on homepage jobs list'
+            ] : [
                 'All Professional features',
                 'Custom statement descriptors',
-                'Zero platform service fees',
+                'Zero freelancer platform service fees',
                 'Dedicated success manager assistance',
-                'Featured placement on homepage jobs list'
+                'Featured placement on homepage'
             ],
             icon: Sparkles,
             color: 'var(--violet)'
