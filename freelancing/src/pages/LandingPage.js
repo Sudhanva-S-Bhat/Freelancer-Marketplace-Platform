@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, Star, MessageSquare, CheckCircle, Sparkles, X } from 'lucide-react';
+import { Shield, MessageSquare, CheckCircle, Sparkles, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
