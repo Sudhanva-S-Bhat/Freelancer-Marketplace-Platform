@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, MessageSquare, CheckCircle, Sparkles, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Shield, Star, MessageSquare, CheckCircle, Sparkles } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
@@ -38,7 +37,6 @@ const LandingPage = () => {
   const [statsRef, statsVisible] = useIntersectionObserver();
   const [featuresRef, featuresVisible] = useIntersectionObserver();
   const [ctaRef, ctaVisible] = useIntersectionObserver();
-  const [salesOpen, setSalesOpen] = useState(false);
 
   return (
     <div className="landing-page">
@@ -63,39 +61,48 @@ const LandingPage = () => {
       </nav>
 
       {/* Hero Section */}
-      <header className="hero-section" ref={heroRef}>
-        <div className={`hero-content scroll-animate ${heroVisible ? 'visible' : ''}`}>
-          <div className="hero-badge">
-            <Sparkles size={16} className="text-primary" />
-            <span>AI-Powered Talent Matching Live</span>
+      <section className="hero-section" ref={heroRef}>
+        <div className="hero-container">
+          <div className={`hero-content scroll-animate ${heroVisible ? 'visible' : ''}`}>
+            <Badge variant="primary" className="hero-badge">New: AI Talent Matching</Badge>
+            <h1>Hire the Best Talent or Build Your Freelance Career</h1>
+            <p>Join the world's most premium marketplace connecting top-tier freelance professionals with ambitious forward-thinking companies.</p>
+            <div className="hero-buttons">
+              <Link to="/RoleSelect?mode=register"><Button variant="primary" size="lg">Get Started Now</Button></Link>
+              <Link to="/freelancers"><Button variant="outline" size="lg">Explore Marketplace</Button></Link>
+            </div>
           </div>
-          <h1 style={{ background: "linear-gradient(135deg,#fff 60%,rgba(255,255,255,.55))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-            Find the perfect freelancer for your project
-          </h1>
-          <p>
-            Connect with pre-vetted professionals, manage contracts, and scale your team securely with Lumina's premier freelancing ecosystem.
-          </p>
-          <div className="hero-actions">
-            <Link to="/RoleSelect?mode=register"><Button variant="gradient" size="lg">Get Started</Button></Link>
-            <Link to="/projects"><Button variant="outline" size="lg">Browse Projects</Button></Link>
+          <div className={`hero-image scroll-animate delay-1 ${heroVisible ? 'visible' : ''}`}>
+            <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" alt="Team Collaboration" className="main-image" />
+            <div className="floating-card stat-card">
+               <Star className="text-yellow-400" size={24} color="#facc15" fill="#facc15"/>
+               <div>
+                 <h4>4.9/5 Average Rating</h4>
+                 <span>From 10k+ clients</span>
+               </div>
+            </div>
           </div>
         </div>
-      </header>
+      </section>
 
-      {/* Trust Stats */}
+      {/* Stats Section */}
       <section className="stats-section" ref={statsRef}>
-        <div className={`stats-grid scroll-animate ${statsVisible ? 'visible' : ''}`}>
-          <div className="stat-card">
-            <h3>10k+</h3>
-            <p>Active Freelancers</p>
+        <div className={`stats-container scroll-animate ${statsVisible ? 'visible' : ''}`}>
+          <div className="stat-item">
+            <h2>10K+</h2>
+            <p>Verified Freelancers</p>
           </div>
-          <div className="stat-card">
-            <h3>$15M+</h3>
-            <p>Payments Secured</p>
+          <div className="stat-item">
+            <h2>5,000+</h2>
+            <p>Completed Projects</p>
           </div>
-          <div className="stat-card">
-            <h3>4.9/5</h3>
-            <p>Average Rating</p>
+          <div className="stat-item">
+            <h2>150+</h2>
+            <p>Skill Categories</p>
+          </div>
+          <div className="stat-item">
+            <h2>99%</h2>
+            <p>Client Satisfaction</p>
           </div>
         </div>
       </section>
@@ -176,7 +183,9 @@ const LandingPage = () => {
               <li>✓ Custom branding & header logo</li>
               <li>✓ Dedicated hiring manager</li>
             </ul>
-            <Button variant="outline" style={{ width: '100%', marginTop: 'auto' }} onClick={() => setSalesOpen(true)}>Contact Sales</Button>
+            <Link to="/RoleSelect?mode=register" style={{ marginTop: 'auto' }}>
+              <Button variant="outline" style={{ width: '100%' }}>Contact Sales</Button>
+            </Link>
           </Card>
         </div>
       </section>
@@ -224,163 +233,8 @@ const LandingPage = () => {
           <p>&copy; 2026 Lumina. All rights reserved.</p>
         </div>
       </footer>
-
-      {/* Contact Sales Modal */}
-      <AnimatePresence>
-        {salesOpen && (
-          <ContactSalesModal onClose={() => setSalesOpen(false)} />
-        )}
-      </AnimatePresence>
     </div>
   );
 };
-
-/* ── Contact Sales Modal ───────────────────────── */
-function ContactSalesModal({ onClose }) {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    workEmail: '',
-    companyName: '',
-    teamSize: '10-50',
-    message: ''
-  });
-  const [submitted, setSubmitted] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
-      setSubmitted(true);
-    }, 1200);
-  };
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      {/* Backdrop */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        style={{ position: 'absolute', inset: 0, background: 'rgba(4,7,13,0.85)', backdropFilter: 'blur(12px)' }}
-      />
-
-      {/* Card */}
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95, y: 16 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 16 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-        style={{
-          position: 'relative', width: '100%', maxWidth: 480,
-          background: 'linear-gradient(180deg, rgba(30,34,45,0.9), rgba(15,18,24,0.95))',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 20, padding: 36, boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
-          zIndex: 1
-        }}
-      >
-        <button onClick={onClose} style={{ position: 'absolute', top: 20, right: 20, background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}>
-          <X size={20} />
-        </button>
-
-        {submitted ? (
-          <div style={{ textAlign: 'center', padding: '24px 0' }}>
-            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(62,230,168,0.1)', border: '1px solid rgba(62,230,168,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-              <CheckCircle size={32} color="var(--ok)" />
-            </div>
-            <h3 style={{ fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 12 }}>Message Received</h3>
-            <p style={{ color: 'var(--text-dim)', fontSize: 14.5, lineHeight: 1.6, marginBottom: 24 }}>
-              Thank you for contacting sales! One of our enterprise hiring directors will reach out to you at <strong>{formData.workEmail}</strong> within the next 4 business hours.
-            </p>
-            <Button variant="primary" style={{ width: '100%' }} onClick={onClose}>Close Window</Button>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-              <Sparkles size={20} color="var(--cyan)" />
-              <span style={{ color: 'var(--cyan)', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Enterprise Solutions</span>
-            </div>
-            <h2 style={{ fontSize: 24, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', margin: '0 0 8px 0' }}>Contact Sales</h2>
-            <p style={{ color: 'var(--text-dim)', fontSize: 13.5, margin: '0 0 24px 0', lineHeight: 1.5 }}>
-              Scale your product team with pre-vetted senior developers and designers under a managed contract.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--text-dim)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.02em' }}>Full Name</label>
-                <input 
-                  required 
-                  type="text" 
-                  value={formData.fullName}
-                  onChange={e => setFormData({ ...formData, fullName: e.target.value })}
-                  style={{ width: '100%', padding: '12px 16px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-strong)', borderRadius: 8, color: '#fff', outline: 'none', fontSize: 14, fontFamily: 'var(--font-body)' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--text-dim)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.02em' }}>Work Email</label>
-                <input 
-                  required 
-                  type="email" 
-                  value={formData.workEmail}
-                  onChange={e => setFormData({ ...formData, workEmail: e.target.value })}
-                  style={{ width: '100%', padding: '12px 16px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-strong)', borderRadius: 8, color: '#fff', outline: 'none', fontSize: 14, fontFamily: 'var(--font-body)' }}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: 12 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--text-dim)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.02em' }}>Company Name</label>
-                  <input 
-                    required 
-                    type="text" 
-                    value={formData.companyName}
-                    onChange={e => setFormData({ ...formData, companyName: e.target.value })}
-                    style={{ width: '100%', padding: '12px 16px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-strong)', borderRadius: 8, color: '#fff', outline: 'none', fontSize: 14, fontFamily: 'var(--font-body)' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--text-dim)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.02em' }}>Team Size</label>
-                  <select 
-                    value={formData.teamSize}
-                    onChange={e => setFormData({ ...formData, teamSize: e.target.value })}
-                    style={{ width: '100%', padding: '12px 16px', background: '#1c1f26', border: '1px solid var(--border-strong)', borderRadius: 8, color: '#fff', outline: 'none', fontSize: 14, height: 46, fontFamily: 'var(--font-body)' }}
-                  >
-                    <option value="1-10">1 - 10</option>
-                    <option value="10-50">10 - 50</option>
-                    <option value="50-200">50 - 200</option>
-                    <option value="200+">200+</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--text-dim)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.02em' }}>Requirements / Project Details</label>
-                <textarea 
-                  required 
-                  rows={3} 
-                  value={formData.message}
-                  onChange={e => setFormData({ ...formData, message: e.target.value })}
-                  style={{ width: '100%', padding: '12px 16px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-strong)', borderRadius: 8, color: '#fff', outline: 'none', fontSize: 14, resize: 'none', fontFamily: 'var(--font-body)' }}
-                />
-              </div>
-            </div>
-
-            <Button 
-              disabled={submitting} 
-              type="submit" 
-              variant="gradient" 
-              style={{ width: '100%', marginTop: 24, padding: '14px 20px', fontWeight: 700 }}
-            >
-              {submitting ? 'Connecting...' : 'Request Consultation'}
-            </Button>
-          </form>
-        )}
-      </motion.div>
-    </div>
-  );
-}
 
 export default LandingPage;
