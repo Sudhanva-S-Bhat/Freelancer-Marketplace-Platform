@@ -92,8 +92,11 @@ function ClientLogin() {
                     </button>
                 </form>
 
-                <p className="auth-links">Don't have an account? <Link to="/client/register">Sign up</Link></p>
-                <a className="back-link" href="/">← Back to home</a>
+                 <p className="auth-links" style={{ display: "flex", justifyContent: "space-between", margin: "16px 0 8px 0" }}>
+                    <span>Don't have an account? <Link to="/client/register">Sign up</Link></span>
+                    <Link to="/forgot-password" style={{ color: "var(--cyan)" }}>Forgot Password?</Link>
+                 </p>
+                 <a className="back-link" href="/">← Back to home</a>
             </div>
         </div>
     );

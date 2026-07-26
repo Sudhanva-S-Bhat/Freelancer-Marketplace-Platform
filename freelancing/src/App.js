@@ -32,6 +32,7 @@ import FreelancerMessages from "./pages/freelancer/FreelancerMessages";
 import FreelancerEditProfile from "./pages/freelancer/FreelancerEditProfile";
 import FreelancerContracts from "./pages/freelancer/FreelancerContracts";
 import Subscriptions from "./pages/shared/Subscriptions";
+import ForgotPassword from "./pages/shared/ForgotPassword";
 
 // Aurora background — copied from lumina.html
 function AuroraBackground() {
@@ -163,6 +164,7 @@ function App() {
                     {/* Home */}
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/RoleSelect" element={<RoleSelect />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
 
                     {/* Client Authentication */}
                     <Route path="/client/register" element={<ClientRegister />} />

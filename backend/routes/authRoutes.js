@@ -12,5 +12,6 @@ router.post('/login/freelancer', authController.loginFreelancer);
 
 router.get('/me', verifyToken, authController.me);
 router.post('/logout', verifyToken, authController.logout);
+router.post('/reset-password', authController.resetPassword);
 
 module.exports = router;
