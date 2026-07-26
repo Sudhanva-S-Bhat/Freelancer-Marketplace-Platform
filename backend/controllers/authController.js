@@ -82,15 +82,11 @@ function login(role) {
       });
 
       if (!user) {
-        return res.status(401).json({ success: false, message: 'Invalid credentials' });
+        return res.status(404).json({ success: false, message: 'Account does not exist' });
       }
 
       if (user.role !== role) {
-        const targetPage = user.role === 'CLIENT' ? 'Client Login' : 'Freelancer Login';
-        return res.status(400).json({ 
-          success: false, 
-          message: `This account is registered as a ${user.role === 'CLIENT' ? 'Client' : 'Freelancer'}. Please use the ${targetPage} page.` 
-        });
+        return res.status(404).json({ success: false, message: 'Account does not exist' });
       }
 
       const passwordMatches = await bcrypt.compare(password, user.passwordHash);
