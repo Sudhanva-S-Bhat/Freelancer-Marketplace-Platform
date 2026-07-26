@@ -214,8 +214,10 @@ const DashboardLayout = ({ role }) => {
   const navigate  = useNavigate();
   const [sidebarOpen,  setSidebarOpen]  = useState(false);
   const [notifOpen,    setNotifOpen]    = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [unreadCount,  setUnreadCount]  = useState(0);
   const notifBtnRef = useRef(null);
+  const profileMenuRef = useRef(null);
 
   const clientLinks = [
     { name: 'Dashboard',       path: '/client/dashboard',          icon: LayoutDashboard },
@@ -251,6 +253,17 @@ const DashboardLayout = ({ role }) => {
     fetchUnread();
     const t = setInterval(fetchUnread, 15000);
     return () => clearInterval(t);
+  }, []);
+
+  // Profile menu outside click listener
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleLogout = () => { logout(); navigate('/'); };
@@ -336,14 +349,70 @@ const DashboardLayout = ({ role }) => {
               )}
             </div>
 
-            <div className="user-profile">
-              <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'linear-gradient(135deg, #2fd8ee, #8b6bf5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-mono, monospace)', fontWeight: 700, fontSize: 14, color: '#04070d', flexShrink: 0, boxShadow: '0 0 12px rgba(47,216,238,0.35)' }}>
-                {((user?.fullName || user?.name || 'U')[0]).toUpperCase()}
+            <div ref={profileMenuRef} style={{ position: 'relative' }}>
+              <div 
+                className="user-profile" 
+                onClick={() => setProfileMenuOpen(o => !o)}
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+              >
+                <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'linear-gradient(135deg, #2fd8ee, #8b6bf5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-mono, monospace)', fontWeight: 700, fontSize: 14, color: '#04070d', flexShrink: 0, boxShadow: '0 0 12px rgba(47,216,238,0.35)' }}>
+                  {((user?.fullName || user?.name || 'U')[0]).toUpperCase()}
+                </div>
+                <div className="user-info">
+                  <span className="user-name">{user?.fullName || user?.name || 'User'}</span>
+                  <span className="user-role">{role === 'CLIENT' ? 'Client' : 'Freelancer'}</span>
+                </div>
               </div>
-              <div className="user-info">
-                <span className="user-name">{user?.fullName || user?.name || 'User'}</span>
-                <span className="user-role">{role === 'CLIENT' ? 'Client' : 'Freelancer'}</span>
-              </div>
+
+              {profileMenuOpen && (
+                <div style={{
+                  position: 'absolute', top: 'calc(100% + 12px)', right: 0,
+                  width: 220, zIndex: 500,
+                  background: 'linear-gradient(135deg,rgba(13,17,32,.99),rgba(8,11,20,1))',
+                  border: '1px solid var(--border-strong)',
+                  borderRadius: 'var(--r-lg)',
+                  boxShadow: '0 24px 60px rgba(0,0,0,.7), 0 0 0 1px rgba(47,216,238,.1)',
+                  padding: '8px 0',
+                  animation: 'fadeUp .2s cubic-bezier(.16,.84,.44,1) both',
+                }}>
+                  {/* Top sheen */}
+                  <div style={{ position: 'absolute', top: 0, left: '20%', right: '20%', height: 1, background: 'linear-gradient(90deg,transparent,rgba(47,216,238,.4),transparent)', pointerEvents: 'none' }} />
+                  
+                  <div style={{ padding: '8px 16px 12px', borderBottom: '1px solid var(--border)', marginBottom: 6 }}>
+                    <p style={{ fontWeight: 700, fontSize: 13.5, margin: 0, color: 'var(--text)' }}>{user?.fullName || user?.name || 'User'}</p>
+                    <p style={{ fontSize: 11.5, color: 'var(--text-faint)', margin: '2px 0 0' }}>@{user?.username || 'user'}</p>
+                  </div>
+
+                  <button 
+                    onClick={() => { navigate(role === 'CLIENT' ? '/client/edit-profile' : '/freelancer/edit-profile'); setProfileMenuOpen(false); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', background: 'none', border: 'none', color: 'var(--text-dim)', fontSize: 13, textAlign: 'left', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'background .15s, color .15s' }}
+                    onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,.04)'; e.currentTarget.style.color = '#fff'; }}
+                    onMouseOut={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--text-dim)'; }}
+                  >
+                    <UserCog size={15} /> Edit Profile
+                  </button>
+
+                  <button 
+                    onClick={() => { navigate(role === 'CLIENT' ? '/client/subscriptions' : '/freelancer/subscriptions'); setProfileMenuOpen(false); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', background: 'none', border: 'none', color: 'var(--text-dim)', fontSize: 13, textAlign: 'left', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'background .15s, color .15s' }}
+                    onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,.04)'; e.currentTarget.style.color = '#fff'; }}
+                    onMouseOut={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--text-dim)'; }}
+                  >
+                    <CreditCard size={15} /> Subscriptions
+                  </button>
+
+                  <div style={{ height: 1, background: 'var(--border)', margin: '6px 0' }} />
+
+                  <button 
+                    onClick={() => { handleLogout(); setProfileMenuOpen(false); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 16px', background: 'none', border: 'none', color: 'var(--danger)', fontSize: 13, textAlign: 'left', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'background .15s' }}
+                    onMouseOver={e => e.currentTarget.style.background = 'rgba(244,123,123,.08)'}
+                    onMouseOut={e => e.currentTarget.style.background = 'none'}
+                  >
+                    <LogOut size={15} /> Logout
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
