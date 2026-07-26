@@ -158,7 +158,6 @@ function App() {
     return (
         <AuthProvider>
             <AuroraBackground />
-            <LuminaCursor />
             <div style={{ position: "relative", zIndex: 3 }}>
                 <Routes>
                     {/* Home */}
