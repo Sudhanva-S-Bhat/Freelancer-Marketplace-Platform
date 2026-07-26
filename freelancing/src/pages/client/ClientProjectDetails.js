@@ -596,6 +596,8 @@ function ClientProjectDetails() {
     const [hasReviewed, setHasReviewed] = useState(false);
     const [ratings, setRatings] = useState({}); // freelancerId → { avg, total }
     const [stripeTarget, setStripeTarget] = useState(null); // { proposalId, freelancerName, amount }
+    const [aiMatches, setAiMatches] = useState([]);
+    const [activeTab, setActiveTab] = useState("proposals");
 
     useEffect(() => {
         (async () => {
@@ -613,9 +615,10 @@ function ClientProjectDetails() {
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
 
-                const [pRes, propRes] = await Promise.all([
+                const [pRes, propRes, aiRes] = await Promise.all([
                     api.get(`/projects/${id}`),
-                    api.get(`/proposals/project/${id}`)
+                    api.get(`/proposals/project/${id}`),
+                    api.get(`/ai/project/${id}/matches`).catch(() => ({ data: { success: false, matches: [] } }))
                 ]);
                 if (pRes.data.success)    setProject(pRes.data.project);
                 if (propRes.data.success) {
@@ -632,6 +635,9 @@ function ClientProjectDetails() {
                         if (data?.averageRating) ratingMap[fid] = { avg: data.averageRating, total: data.totalReviews };
                     });
                     setRatings(ratingMap);
+                }
+                if (aiRes.data.success) {
+                    setAiMatches(aiRes.data.matches);
                 }
                 // Check if already reviewed
                 const revRes = await api.get(`/reviews/check/${id}`).catch(() => null);
@@ -856,110 +862,234 @@ function ClientProjectDetails() {
                     </div>
                 )}
 
-                {/* Proposals */}
-                <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-                        <h2 style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-.02em" }}>Submitted Proposals</h2>
+                {/* Tabs Selector */}
+                <div style={{ display: 'flex', gap: 16, borderBottom: '1px solid var(--border)', marginBottom: 24, paddingBottom: 1 }}>
+                    <button 
+                        onClick={() => setActiveTab("proposals")}
+                        style={{
+                            padding: '12px 8px', background: 'none', border: 'none',
+                            borderBottom: activeTab === 'proposals' ? '2px solid var(--cyan)' : '2px solid transparent',
+                            color: activeTab === 'proposals' ? 'var(--cyan)' : 'var(--text-dim)',
+                            fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'var(--font-body)',
+                            transition: 'all .25s', display: 'flex', alignItems: 'center', gap: 8
+                        }}
+                    >
+                        Submitted Proposals 
                         {proposals.length > 0 && (
-                            <span style={{ padding: "3px 10px", borderRadius: 99, fontSize: 12, fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--cyan)", background: "rgba(47,216,238,.1)", border: "1px solid rgba(47,216,238,.25)" }}>{proposals.length}</span>
+                            <span style={{ padding: '2px 8px', borderRadius: 99, background: activeTab === 'proposals' ? 'rgba(47,216,238,.12)' : 'rgba(255,255,255,.05)', fontSize: 11, fontFamily: 'var(--font-mono)' }}>
+                                {proposals.length}
+                            </span>
+                        )}
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab("aiMatches")}
+                        style={{
+                            padding: '12px 8px', background: 'none', border: 'none',
+                            borderBottom: activeTab === 'aiMatches' ? '2px solid var(--cyan)' : '2px solid transparent',
+                            color: activeTab === 'aiMatches' ? 'var(--cyan)' : 'var(--text-dim)',
+                            fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'var(--font-body)',
+                            transition: 'all .25s', display: 'flex', alignItems: 'center', gap: 8
+                        }}
+                    >
+                        ✨ AI Talent Matching
+                        {aiMatches.length > 0 && (
+                            <span style={{ padding: '2px 8px', borderRadius: 99, background: 'rgba(99,91,255,.15)', color: 'var(--violet)', fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+                                {aiMatches.length} Found
+                            </span>
+                        )}
+                    </button>
+                </div>
+
+                {activeTab === "proposals" ? (
+                    <div>
+                        {proposals.length === 0 ? (
+                            <div className="dashboard-card" style={{ padding: "64px 24px", textAlign: "center" }}>
+                                <div className="empty-icon" style={{ margin: "0 auto 20px" }}><Briefcase size={26} /></div>
+                                <h4>No proposals yet</h4>
+                                <p style={{ color: "var(--text-dim)", fontSize: 14, marginTop: 8 }}>Freelancers haven't submitted any bids yet.</p>
+                            </div>
+                        ) : (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                                <AnimatePresence>
+                                    {proposals.map((proposal, i) => {
+                                        const isActioning = actionId === proposal._id;
+                                        const name    = proposal.freelancer?.fullName || "Freelancer";
+                                        const initial = name[0].toUpperCase();
+                                        return (
+                                            <motion.div
+                                                key={proposal._id}
+                                                initial={{ opacity: 0, y: 12 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: i * .07, ease: [.16,.84,.44,1] }}
+                                                className="dashboard-card"
+                                                style={{ padding: "24px 28px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 24 }}
+                                            >
+                                                {/* Left */}
+                                                <div style={{ flex: 1 }}>
+                                                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                                                        <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,var(--cyan),var(--violet))", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 15, color: "#04070d", flexShrink: 0, boxShadow: "0 0 12px rgba(47,216,238,.3)" }}>
+                                                            {initial}
+                                                        </div>
+                                                        <div>
+                                                            <p style={{ fontWeight: 700, margin: 0, fontSize: 15, letterSpacing: "-.01em" }}>{name}</p>
+                                                            {proposal.freelancer?.username && (
+                                                                <p style={{ color: "var(--text-faint)", fontSize: 12, fontFamily: "var(--font-mono)", margin: 0 }}>@{proposal.freelancer.username}</p>
+                                                            )}
+                                                        </div>
+                                                        <StatusBadge label={proposal.status} map={proposalColor} />
+                                                        {/* Star rating */}
+                                                        <StarBadge avg={ratings[proposal.freelancer?._id]?.avg} total={ratings[proposal.freelancer?._id]?.total} />
+                                                    </div>
+                                                    <p style={{ color: "var(--text-dim)", fontSize: 14, lineHeight: 1.7, marginBottom: 16 }}>{proposal.coverLetter}</p>
+                                                    <div style={{ display: "flex", gap: 12 }}>
+                                                        <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 14px", borderRadius: 99, background: "rgba(47,216,238,.08)", border: "1px solid rgba(47,216,238,.2)", fontSize: 13, fontFamily: "var(--font-mono)", fontWeight: 600, color: "var(--cyan)" }}>
+                                                            <DollarSign size={13} /> ${proposal.bidAmount}
+                                                        </div>
+                                                        <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 14px", borderRadius: 99, background: "rgba(139,107,245,.08)", border: "1px solid rgba(139,107,245,.2)", fontSize: 13, fontFamily: "var(--font-mono)", fontWeight: 600, color: "var(--violet)" }}>
+                                                            <Clock size={13} /> {proposal.estimatedTime}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Right — actions */}
+                                                <div style={{ display: "flex", flexDirection: "column", gap: 10, flexShrink: 0 }}>
+                                                    {/* Message button */}
+                                                    {proposal.status === "accepted" && (
+                                                        <button
+                                                            onClick={() => setMsgTarget({ userId: proposal.freelancer?._id, fullName: name })}
+                                                            style={{
+                                                                padding: "10px 20px", borderRadius: 999,
+                                                                border: "1px solid rgba(47,216,238,.35)",
+                                                                background: "rgba(47,216,238,.08)",
+                                                                color: "var(--cyan)", fontWeight: 600, fontSize: 13.5,
+                                                                cursor: "pointer", display: "flex", alignItems: "center", gap: 7,
+                                                                fontFamily: "var(--font-body)", transition: "background .2s, box-shadow .2s",
+                                                            }}
+                                                            onMouseOver={e => { e.currentTarget.style.background = "rgba(47,216,238,.14)"; e.currentTarget.style.boxShadow = "0 6px 24px -6px rgba(47,216,238,.4)"; }}
+                                                            onMouseOut={e => { e.currentTarget.style.background = "rgba(47,216,238,.08)"; e.currentTarget.style.boxShadow = "none"; }}
+                                                        >
+                                                            <MessageSquare size={15} /> Message
+                                                        </button>
+                                                    )}
+
+                                                    {/* Accept / Reject */}
+                                                    {proposal.status === "pending" && (project.status === "Open" || project.status === "In Progress") && (
+                                                        <>
+                                                            <button disabled={isActioning} onClick={() => handleAction(proposal._id, "accepted")} style={{ padding: "10px 20px", borderRadius: 999, border: "none", background: "linear-gradient(90deg,var(--ok),#2fd8ee)", color: "#04070d", fontWeight: 700, fontSize: 13.5, cursor: isActioning ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 7, opacity: isActioning ? .6 : 1, transition: "box-shadow .25s", fontFamily: "var(--font-body)" }}
+                                                                onMouseOver={e => { if (!isActioning) e.currentTarget.style.boxShadow = "0 6px 24px -6px rgba(62,230,168,.6)"; }}
+                                                                onMouseOut={e => e.currentTarget.style.boxShadow = "none"}
+                                                            >
+                                                                <CheckCircle size={15} /> Accept
+                                                            </button>
+                                                            <button disabled={isActioning} onClick={() => handleAction(proposal._id, "rejected")} style={{ padding: "10px 20px", borderRadius: 999, border: "1px solid rgba(244,123,123,.35)", background: "rgba(244,123,123,.06)", color: "var(--danger)", fontWeight: 600, fontSize: 13.5, cursor: isActioning ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 7, opacity: isActioning ? .6 : 1, transition: "background .2s, box-shadow .2s", fontFamily: "var(--font-body)" }}
+                                                                onMouseOver={e => { if (!isActioning) { e.currentTarget.style.background = "rgba(244,123,123,.12)"; e.currentTarget.style.boxShadow = "0 6px 24px -6px rgba(244,123,123,.4)"; } }}
+                                                                onMouseOut={e => { e.currentTarget.style.background = "rgba(244,123,123,.06)"; e.currentTarget.style.boxShadow = "none"; }}
+                                                            >
+                                                                <XCircle size={15} /> Reject
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </motion.div>
+                                        );
+                                    })}
+                                </AnimatePresence>
+                            </div>
                         )}
                     </div>
-
-                    {proposals.length === 0 ? (
-                        <div className="dashboard-card" style={{ padding: "64px 24px", textAlign: "center" }}>
-                            <div className="empty-icon" style={{ margin: "0 auto 20px" }}><Briefcase size={26} /></div>
-                            <h4>No proposals yet</h4>
-                            <p style={{ color: "var(--text-dim)", fontSize: 14, marginTop: 8 }}>Freelancers haven't submitted any bids yet.</p>
-                        </div>
-                    ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                            <AnimatePresence>
-                                {proposals.map((proposal, i) => {
-                                    const isActioning = actionId === proposal._id;
-                                    const name    = proposal.freelancer?.fullName || "Freelancer";
-                                    const initial = name[0].toUpperCase();
-                                    return (
+                ) : (
+                    <div>
+                        {aiMatches.length === 0 ? (
+                            <div className="dashboard-card" style={{ padding: "64px 24px", textAlign: "center" }}>
+                                <div className="empty-icon" style={{ margin: "0 auto 20px", background: 'rgba(99,91,255,.08)' }}><Users size={26} color="var(--violet)" /></div>
+                                <h4>No matches found</h4>
+                                <p style={{ color: "var(--text-dim)", fontSize: 14, marginTop: 8 }}>Register more freelancers matching this project's required skills to populate suggestions.</p>
+                            </div>
+                        ) : (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                                <AnimatePresence>
+                                    {aiMatches.map((candidate, i) => (
                                         <motion.div
-                                            key={proposal._id}
+                                            key={candidate.freelancerId}
                                             initial={{ opacity: 0, y: 12 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: i * .07, ease: [.16,.84,.44,1] }}
                                             className="dashboard-card"
-                                            style={{ padding: "24px 28px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 24 }}
+                                            style={{ 
+                                                padding: "24px 28px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 24,
+                                                border: '1px solid rgba(99,91,255,.15)',
+                                                background: 'linear-gradient(180deg, rgba(99,91,255,.02), rgba(0,0,0,0))'
+                                            }}
                                         >
-                                            {/* Left */}
                                             <div style={{ flex: 1 }}>
                                                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                                                    <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,var(--cyan),var(--violet))", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 15, color: "#04070d", flexShrink: 0, boxShadow: "0 0 12px rgba(47,216,238,.3)" }}>
-                                                        {initial}
+                                                    <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,var(--violet),var(--cyan))", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 15, color: "#fff", flexShrink: 0, boxShadow: "0 0 12px rgba(139,107,245,.3)" }}>
+                                                        {candidate.fullName[0].toUpperCase()}
                                                     </div>
                                                     <div>
-                                                        <p style={{ fontWeight: 700, margin: 0, fontSize: 15, letterSpacing: "-.01em" }}>{name}</p>
-                                                        {proposal.freelancer?.username && (
-                                                            <p style={{ color: "var(--text-faint)", fontSize: 12, fontFamily: "var(--font-mono)", margin: 0 }}>@{proposal.freelancer.username}</p>
-                                                        )}
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                            <p style={{ fontWeight: 700, margin: 0, fontSize: 15, letterSpacing: "-.01em" }}>{candidate.fullName}</p>
+                                                            <span style={{ padding: '3px 9px', borderRadius: 99, background: 'rgba(99,91,255,.12)', color: 'var(--violet)', fontSize: 10.5, fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
+                                                                {candidate.matchPercentage}% MATCH
+                                                            </span>
+                                                        </div>
+                                                        <p style={{ color: "var(--text-faint)", fontSize: 12, fontFamily: "var(--font-mono)", margin: 0 }}>@{candidate.username}</p>
                                                     </div>
-                                                    <StatusBadge label={proposal.status} map={proposalColor} />
-                                                    {/* Star rating */}
-                                                    <StarBadge avg={ratings[proposal.freelancer?._id]?.avg} total={ratings[proposal.freelancer?._id]?.total} />
                                                 </div>
-                                                <p style={{ color: "var(--text-dim)", fontSize: 14, lineHeight: 1.7, marginBottom: 16 }}>{proposal.coverLetter}</p>
+
+                                                <p style={{ fontWeight: 600, color: 'var(--text)', fontSize: 14.5, marginBottom: 6 }}>{candidate.professionalTitle}</p>
+                                                
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+                                                    {candidate.skills.map(skill => {
+                                                        const isMatch = candidate.matchingSkills.some(s => s.toLowerCase() === skill.toLowerCase());
+                                                        return (
+                                                            <span 
+                                                                key={skill}
+                                                                style={{ 
+                                                                    padding: '4px 10px', borderRadius: 6, fontSize: 11, 
+                                                                    background: isMatch ? 'rgba(47,216,238,.12)' : 'rgba(255,255,255,.03)',
+                                                                    border: isMatch ? '1px solid rgba(47,216,238,.35)' : '1px solid var(--border-strong)',
+                                                                    color: isMatch ? 'var(--cyan)' : 'var(--text-dim)',
+                                                                    fontWeight: isMatch ? 700 : 500
+                                                                }}
+                                                            >
+                                                                {skill} {isMatch && '✓'}
+                                                            </span>
+                                                        );
+                                                    })}
+                                                </div>
+
                                                 <div style={{ display: "flex", gap: 12 }}>
-                                                    <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 14px", borderRadius: 99, background: "rgba(47,216,238,.08)", border: "1px solid rgba(47,216,238,.2)", fontSize: 13, fontFamily: "var(--font-mono)", fontWeight: 600, color: "var(--cyan)" }}>
-                                                        <DollarSign size={13} /> ${proposal.bidAmount}
-                                                    </div>
-                                                    <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 14px", borderRadius: 99, background: "rgba(139,107,245,.08)", border: "1px solid rgba(139,107,245,.2)", fontSize: 13, fontFamily: "var(--font-mono)", fontWeight: 600, color: "var(--violet)" }}>
-                                                        <Clock size={13} /> {proposal.estimatedTime}
+                                                    <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 14px", borderRadius: 99, background: "rgba(62,230,168,.08)", border: "1px solid rgba(62,230,168,.2)", fontSize: 13, fontFamily: "var(--font-mono)", fontWeight: 600, color: "var(--ok)" }}>
+                                                        <DollarSign size={13} /> ${candidate.hourlyRate}/hr
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            {/* Right — actions */}
-                                            <div style={{ display: "flex", flexDirection: "column", gap: 10, flexShrink: 0 }}>
-                                                {/* Message button — always visible for accepted proposals */}
-                                                {proposal.status === "accepted" && (
-                                                    <button
-                                                        onClick={() => setMsgTarget({ userId: proposal.freelancer?._id, fullName: name })}
-                                                        style={{
-                                                            padding: "10px 20px", borderRadius: 999,
-                                                            border: "1px solid rgba(47,216,238,.35)",
-                                                            background: "rgba(47,216,238,.08)",
-                                                            color: "var(--cyan)", fontWeight: 600, fontSize: 13.5,
-                                                            cursor: "pointer", display: "flex", alignItems: "center", gap: 7,
-                                                            fontFamily: "var(--font-body)", transition: "background .2s, box-shadow .2s",
-                                                        }}
-                                                        onMouseOver={e => { e.currentTarget.style.background = "rgba(47,216,238,.14)"; e.currentTarget.style.boxShadow = "0 6px 24px -6px rgba(47,216,238,.4)"; }}
-                                                        onMouseOut={e => { e.currentTarget.style.background = "rgba(47,216,238,.08)"; e.currentTarget.style.boxShadow = "none"; }}
-                                                    >
-                                                        <MessageSquare size={15} /> Message
-                                                    </button>
-                                                )}
-
-                                                {/* Accept / Reject — pending proposals on open or in progress project */}
-                                                {proposal.status === "pending" && (project.status === "Open" || project.status === "In Progress") && (
-                                                    <>
-                                                        <button disabled={isActioning} onClick={() => handleAction(proposal._id, "accepted")} style={{ padding: "10px 20px", borderRadius: 999, border: "none", background: "linear-gradient(90deg,var(--ok),#2fd8ee)", color: "#04070d", fontWeight: 700, fontSize: 13.5, cursor: isActioning ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 7, opacity: isActioning ? .6 : 1, transition: "box-shadow .25s", fontFamily: "var(--font-body)" }}
-                                                            onMouseOver={e => { if (!isActioning) e.currentTarget.style.boxShadow = "0 6px 24px -6px rgba(62,230,168,.6)"; }}
-                                                            onMouseOut={e => e.currentTarget.style.boxShadow = "none"}
-                                                        >
-                                                            <CheckCircle size={15} /> Accept
-                                                        </button>
-                                                        <button disabled={isActioning} onClick={() => handleAction(proposal._id, "rejected")} style={{ padding: "10px 20px", borderRadius: 999, border: "1px solid rgba(244,123,123,.35)", background: "rgba(244,123,123,.06)", color: "var(--danger)", fontWeight: 600, fontSize: 13.5, cursor: isActioning ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 7, opacity: isActioning ? .6 : 1, transition: "background .2s, box-shadow .2s", fontFamily: "var(--font-body)" }}
-                                                            onMouseOver={e => { if (!isActioning) { e.currentTarget.style.background = "rgba(244,123,123,.12)"; e.currentTarget.style.boxShadow = "0 6px 24px -6px rgba(244,123,123,.4)"; } }}
-                                                            onMouseOut={e => { e.currentTarget.style.background = "rgba(244,123,123,.06)"; e.currentTarget.style.boxShadow = "none"; }}
-                                                        >
-                                                            <XCircle size={15} /> Reject
-                                                        </button>
-                                                    </>
-                                                )}
+                                            <div style={{ flexShrink: 0 }}>
+                                                <button
+                                                    onClick={() => setMsgTarget({ userId: candidate.freelancerId, fullName: candidate.fullName })}
+                                                    style={{
+                                                        padding: "10px 20px", borderRadius: 999,
+                                                        border: "1px solid rgba(139,107,245,.35)",
+                                                        background: "rgba(139,107,245,.08)",
+                                                        color: "var(--violet)", fontWeight: 600, fontSize: 13.5,
+                                                        cursor: "pointer", display: "flex", alignItems: "center", gap: 7,
+                                                        fontFamily: "var(--font-body)", transition: "background .2s, box-shadow .2s",
+                                                    }}
+                                                    onMouseOver={e => { e.currentTarget.style.background = "rgba(139,107,245,.14)"; e.currentTarget.style.boxShadow = "0 6px 24px -6px rgba(139,107,245,.4)"; }}
+                                                    onMouseOut={e => { e.currentTarget.style.background = "rgba(139,107,245,.08)"; e.currentTarget.style.boxShadow = "none"; }}
+                                                >
+                                                    <MessageSquare size={15} /> Message to Invite
+                                                </button>
                                             </div>
                                         </motion.div>
-                                    );
-                                })}
-                            </AnimatePresence>
-                        </div>
-                    )}
-                </div>
+                                    ))}
+                                </AnimatePresence>
+                            </div>
+                        )}
+                    </div>
+                )}
             </motion.div>
 
             {/* Message Modal */}

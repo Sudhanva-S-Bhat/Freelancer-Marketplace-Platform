@@ -13,6 +13,7 @@ const proposalRoutes = require('./routes/proposalRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const reviewRoutes  = require('./routes/reviewRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const aiRoutes      = require('./routes/aiRoutes');
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use('/api/proposals', proposalRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/reviews',  reviewRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/ai',       aiRoutes);
 
 app.get('/api/health', (req, res) => res.json({ success: true, message: 'API is running' }));
 

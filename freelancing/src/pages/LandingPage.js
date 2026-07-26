@@ -143,6 +143,7 @@ const LandingPage = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
           {/* Basic Plan */}
           <Card hover style={{ padding: 32, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ height: 34 }} />
             <h3 style={{ fontSize: 20, margin: '0 0 8px 0', color: '#fff' }}>Basic</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: 13.5, marginBottom: 24 }}>Essential tools to get started</p>
             <div style={{ fontSize: 36, fontWeight: 800, color: '#fff', marginBottom: 24 }}>$0 <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--text-muted)' }}>/ mo</span></div>
@@ -158,7 +159,7 @@ const LandingPage = () => {
 
           {/* Pro Plan */}
           <Card hover style={{ padding: 32, display: 'flex', flexDirection: 'column', border: '2px solid var(--primary)', position: 'relative', background: 'rgba(99,91,255,.05)' }}>
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ height: 34, marginBottom: 14 }}>
               <span style={{ padding: '4px 14px', borderRadius: 99, background: 'linear-gradient(90deg,#635bff,#2fd8ee)', color: '#fff', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', display: 'inline-block' }}>Most Popular</span>
             </div>
             <h3 style={{ fontSize: 20, margin: '0 0 8px 0', color: '#fff' }}>Professional</h3>
@@ -177,6 +178,7 @@ const LandingPage = () => {
 
           {/* Enterprise Plan */}
           <Card hover style={{ padding: 32, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ height: 34 }} />
             <h3 style={{ fontSize: 20, margin: '0 0 8px 0', color: '#fff' }}>Enterprise</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: 13.5, marginBottom: 24 }}>For power users & company teams</p>
             <div style={{ fontSize: 36, fontWeight: 800, color: '#fff', marginBottom: 24 }}>$49 <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--text-muted)' }}>/ mo</span></div>
