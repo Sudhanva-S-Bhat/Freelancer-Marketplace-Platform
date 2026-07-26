@@ -158,7 +158,7 @@ const LandingPage = () => {
 
           {/* Pro Plan */}
           <Card hover style={{ padding: 32, display: 'flex', flexDirection: 'column', border: '2px solid var(--primary)', position: 'relative', background: 'rgba(99,91,255,.05)', overflow: 'visible' }}>
-            <span style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', padding: '4px 14px', borderRadius: 99, background: 'linear-gradient(90deg,#635bff,#2fd8ee)', color: '#fff', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Most Popular</span>
+            <span style={{ position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)', padding: '4px 14px', borderRadius: 99, background: 'linear-gradient(90deg,#635bff,#2fd8ee)', color: '#fff', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Most Popular</span>
             <h3 style={{ fontSize: 20, margin: '0 0 8px 0', color: '#fff' }}>Professional</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: 13.5, marginBottom: 24 }}>Unlock premium reach & AI matching</p>
             <div style={{ fontSize: 36, fontWeight: 800, color: '#fff', marginBottom: 24 }}>$19 <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--text-muted)' }}>/ mo</span></div>
