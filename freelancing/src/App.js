@@ -34,13 +34,11 @@ import FreelancerContracts from "./pages/freelancer/FreelancerContracts";
 import Subscriptions from "./pages/shared/Subscriptions";
 import ForgotPassword from "./pages/shared/ForgotPassword";
 
-// Aurora background — copied from lumina.html
+// Aurora background — copied from base.css
 function AuroraBackground() {
     return (
-        <div className="aurora" aria-hidden="true">
-            <div className="blob blob-1" />
-            <div className="blob blob-2" />
-            <div className="blob blob-3" />
+        <div className="aurora-bg" aria-hidden="true">
+            <span />
         </div>
     );
 }
