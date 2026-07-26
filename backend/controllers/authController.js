@@ -78,12 +78,19 @@ function login(role) {
       }
 
       const user = await User.findOne({
-        role,
         $or: [{ email: identifier.toLowerCase() }, { username: identifier.toLowerCase() }],
       });
 
       if (!user) {
         return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      }
+
+      if (user.role !== role) {
+        const targetPage = user.role === 'CLIENT' ? 'Client Login' : 'Freelancer Login';
+        return res.status(400).json({ 
+          success: false, 
+          message: `This account is registered as a ${user.role === 'CLIENT' ? 'Client' : 'Freelancer'}. Please use the ${targetPage} page.` 
+        });
       }
 
       const passwordMatches = await bcrypt.compare(password, user.passwordHash);
