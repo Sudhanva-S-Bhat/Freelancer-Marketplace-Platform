@@ -140,6 +140,29 @@ function logout(req, res) {
   return res.json({ success: true, message: 'Logged out successfully' });
 }
 
+async function resetPassword(req, res) {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: 'Email and new password are required' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'No user registered with this email address' });
+    }
+
+    // Encrypt the new password
+    const salt = await bcrypt.genSalt(10);
+    user.passwordHash = await bcrypt.hash(password, salt);
+    await user.save();
+
+    return res.json({ success: true, message: 'Password reset successfully!' });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Password reset failed', error: err.message });
+  }
+}
+
 module.exports = {
   registerClient: register('CLIENT'),
   registerFreelancer: register('FREELANCER'),
@@ -148,4 +171,5 @@ module.exports = {
   checkExists,
   me,
   logout,
+  resetPassword,
 };
