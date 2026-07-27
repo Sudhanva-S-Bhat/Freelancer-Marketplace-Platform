@@ -30,7 +30,7 @@ function validateRegistration({ fullName, email, username, password, confirmPass
 function register(role) {
   return async (req, res) => {
     try {
-      const { fullName, email, username, password, confirmPassword, identityNumber } = req.body;
+      const { fullName, email, username, password, confirmPassword, identityNumber, currency } = req.body;
 
       const validationError = validateRegistration({ fullName, email, username, password, confirmPassword, identityNumber });
       if (validationError) {
@@ -55,12 +55,13 @@ function register(role) {
         passwordHash,
         identityNumber,
         role,
+        currency: currency || 'USD',
       });
 
       return res.status(201).json({
         success: true,
         message: 'Registration successful. Please log in.',
-        user: { id: user._id, fullName: user.fullName, username: user.username, role: user.role },
+        user: { id: user._id, fullName: user.fullName, username: user.username, role: user.role, currency: user.currency },
       });
     } catch (err) {
       return res.status(500).json({ success: false, message: 'Registration failed', error: err.message });
@@ -106,6 +107,7 @@ function login(role) {
           email: user.email,
           role: user.role,
           profileCompleted: user.profileCompleted,
+          currency: user.currency || 'USD',
         },
       });
     } catch (err) {

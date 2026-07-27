@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Briefcase, GraduationCap, Globe, MapPin,
   DollarSign, Plus, Trash2, CheckCircle, Save,
-  ChevronRight, ChevronLeft, Sparkles, Clock, Code
+  ChevronRight, ChevronLeft, Sparkles, Clock, Code, CreditCard
 } from 'lucide-react';
 import api from '../../api/axiosInstance';
 import LuminaSelect from '../../components/ui/LuminaSelect';
@@ -37,6 +37,7 @@ const STEPS = [
   { id: 'education',   label: 'Education',   icon: GraduationCap},
   { id: 'links',       label: 'Links',       icon: Globe       },
   { id: 'location',    label: 'Location',    icon: MapPin      },
+  { id: 'payout',      label: 'Payout / Bank', icon: CreditCard },
 ];
 
 const CATEGORIES  = ['Web Development','Mobile Development','Design','Writing','Marketing','Data Science','Video & Animation','Other'];
@@ -58,6 +59,7 @@ export default function FreelancerEditProfile() {
     highestQualification: '', collegeOrUniversity: '', graduationYear: '',
     portfolioWebsite: '', github: '', linkedin: '',
     country: '', state: '', city: '', timeZone: '',
+    bankName: '', accountHolderName: '', accountNumber: '', ifscCode: '',
     workExperience: [],
     languages: [],
     agreedToTerms: true,
@@ -93,6 +95,10 @@ export default function FreelancerEditProfile() {
             state:                p.state || '',
             city:                 p.city || '',
             timeZone:             p.timeZone || '',
+            bankName:             p.bankName || '',
+            accountHolderName:    p.accountHolderName || '',
+            accountNumber:        p.accountNumber || '',
+            ifscCode:             p.ifscCode || '',
             workExperience:       p.workExperience || [],
             languages:            p.languages || [],
             agreedToTerms:        true,
@@ -412,6 +418,34 @@ export default function FreelancerEditProfile() {
                     <Field><Label>State</Label><input style={inp} value={form.state} onChange={on('state')} onFocus={focusIn} onBlur={focusOut} placeholder="Karnataka" /></Field>
                     <Field><Label>City</Label><input style={inp} value={form.city} onChange={on('city')} onFocus={focusIn} onBlur={focusOut} placeholder="Bengaluru" /></Field>
                     <Field><Label>Time Zone</Label><input style={inp} value={form.timeZone} onChange={on('timeZone')} onFocus={focusIn} onBlur={focusOut} placeholder="IST (UTC+5:30)" /></Field>
+                  </div>
+                </div>
+              )}
+
+              {/* ── STEP 5: Payout ── */}
+              {step === 5 && (
+                <div>
+                  <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(47,216,238,.1)', border: '1px solid rgba(47,216,238,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><CreditCard size={16} color="var(--cyan)" /></div>
+                    Payout & Bank Details
+                  </h2>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                    <Field span={2}>
+                      <Label>Account Holder Name</Label>
+                      <input style={inp} value={form.accountHolderName} onChange={on('accountHolderName')} onFocus={focusIn} onBlur={focusOut} placeholder="e.g. Sudhanva S Bhat" />
+                    </Field>
+                    <Field>
+                      <Label>Bank Name</Label>
+                      <input style={inp} value={form.bankName} onChange={on('bankName')} onFocus={focusIn} onBlur={focusOut} placeholder="e.g. State Bank of India" />
+                    </Field>
+                    <Field>
+                      <Label>IFSC / Routing Code</Label>
+                      <input style={inp} value={form.ifscCode} onChange={on('ifscCode')} onFocus={focusIn} onBlur={focusOut} placeholder="e.g. SBIN0012345" />
+                    </Field>
+                    <Field span={2}>
+                      <Label>Account Number</Label>
+                      <input style={inp} type="password" value={form.accountNumber} onChange={on('accountNumber')} onFocus={focusIn} onBlur={focusOut} placeholder="e.g. 123456789012" />
+                    </Field>
                   </div>
                 </div>
               )}

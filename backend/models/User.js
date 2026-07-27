@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema(
     identityNumber: { type: String, required: false, trim: true },
     isVerified: { type: Boolean, default: false },
     profileCompleted: { type: Boolean, default: false },
+    currency: { type: String, enum: ['USD', 'INR'], default: 'USD' },
   },
   { timestamps: { createdAt: 'createdAt', updatedAt: false } }
 );

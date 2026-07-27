@@ -80,6 +80,10 @@ const freelancerProfileSchema = new mongoose.Schema(
     // Payment
     preferredPaymentMethod: { type: String, default: '' },
     paymentDetails: { type: String, default: '' },
+    bankName: { type: String, default: '' },
+    accountHolderName: { type: String, default: '' },
+    accountNumber: { type: String, default: '' },
+    ifscCode: { type: String, default: '' },
 
     // Verification
     identityVerified: { type: Boolean, default: false },
