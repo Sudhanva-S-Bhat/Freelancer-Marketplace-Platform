@@ -39,7 +39,7 @@ exports.getClientProjects = async (req, res) => {
 exports.getAllOpenProjects = async (req, res) => {
   try {
     const projects = await Project.find({ status: 'Open' })
-      .populate('clientId', 'fullName profileCompleted')
+      .populate('clientId', 'fullName profileCompleted currency')
       .sort({ createdAt: -1 });
     res.status(200).json({ success: true, projects });
   } catch (error) {
@@ -51,7 +51,7 @@ exports.getAllOpenProjects = async (req, res) => {
 // Get a single project by ID
 exports.getSingleProject = async (req, res) => {
   try {
-    const project = await Project.findById(req.params.id).populate('clientId', 'fullName');
+    const project = await Project.findById(req.params.id).populate('clientId', 'fullName currency');
     if (!project) {
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
