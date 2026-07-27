@@ -44,7 +44,7 @@ exports.createCheckoutSession = async (req, res) => {
       line_items: [
         {
           price_data: {
-            currency: 'usd',
+            currency: 'inr',
             product_data: {
               name: `Escrow Payment: ${project.title}`,
               description: `Payment to freelancer: ${proposal.freelancer?.fullName || 'Freelancer'}`,

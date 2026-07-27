@@ -184,7 +184,7 @@ function FreelancerBids() {
 
                                     <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 13px', borderRadius: 99, background: 'rgba(47,216,238,.08)', border: '1px solid rgba(47,216,238,.2)', fontSize: 13, fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--cyan)' }}>
-                                            <DollarSign size={13} /> ${proposal.bidAmount}
+                                            <span style={{ fontFamily: 'var(--font-mono)' }}>₹</span> {proposal.bidAmount}
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 13px', borderRadius: 99, background: 'rgba(139,107,245,.08)', border: '1px solid rgba(139,107,245,.2)', fontSize: 13, fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--violet)' }}>
                                             <Clock size={13} /> {proposal.estimatedTime}

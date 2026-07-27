@@ -135,7 +135,7 @@ export default function ClientPostProject() {
           {/* Budget */}
           <FIELD label="Budget (₹)">
             <div style={{ position: "relative" }}>
-              <DollarSign size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-faint)" }} />
+              <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "var(--text-faint)", fontSize: "16px", fontFamily: "var(--font-mono)", pointerEvents: "none" }}>₹</span>
               <input type="number" name="budget" placeholder="e.g. 50000" min="0"
                 value={formData.budget} onChange={handleChange} required
                 style={{ ...inputStyle, paddingLeft: 42 }}

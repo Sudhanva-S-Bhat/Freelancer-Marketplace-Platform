@@ -776,7 +776,7 @@ function ClientProjectDetails() {
                             </div>
                         )}
                         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                            <MetaStat icon={DollarSign} label="Budget"   value={`$${project.budget?.toLocaleString()}`} accent="var(--cyan)" />
+                            <MetaStat icon={DollarSign} label="Budget"   value={`₹${project.budget?.toLocaleString()}`} accent="var(--cyan)" />
                             <MetaStat icon={Calendar}   label="Deadline" value={new Date(project.deadline).toLocaleDateString()} />
                             <MetaStat icon={Star}       label="Level"    value={project.experienceLevel} />
                         </div>
@@ -943,7 +943,7 @@ function ClientProjectDetails() {
                                                     <p style={{ color: "var(--text-dim)", fontSize: 14, lineHeight: 1.7, marginBottom: 16 }}>{proposal.coverLetter}</p>
                                                     <div style={{ display: "flex", gap: 12 }}>
                                                         <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 14px", borderRadius: 99, background: "rgba(47,216,238,.08)", border: "1px solid rgba(47,216,238,.2)", fontSize: 13, fontFamily: "var(--font-mono)", fontWeight: 600, color: "var(--cyan)" }}>
-                                                            <DollarSign size={13} /> ${proposal.bidAmount}
+                                                            <span style={{ fontFamily: 'var(--font-mono)' }}>₹</span> {proposal.bidAmount}
                                                         </div>
                                                         <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 14px", borderRadius: 99, background: "rgba(139,107,245,.08)", border: "1px solid rgba(139,107,245,.2)", fontSize: 13, fontFamily: "var(--font-mono)", fontWeight: 600, color: "var(--violet)" }}>
                                                             <Clock size={13} /> {proposal.estimatedTime}
@@ -1061,7 +1061,7 @@ function ClientProjectDetails() {
 
                                                 <div style={{ display: "flex", gap: 12 }}>
                                                     <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 14px", borderRadius: 99, background: "rgba(62,230,168,.08)", border: "1px solid rgba(62,230,168,.2)", fontSize: 13, fontFamily: "var(--font-mono)", fontWeight: 600, color: "var(--ok)" }}>
-                                                        <DollarSign size={13} /> ${candidate.hourlyRate}/hr
+                                                        <span style={{ fontFamily: 'var(--font-mono)' }}>₹</span> {candidate.hourlyRate}/hr
                                                     </div>
                                                 </div>
                                             </div>
