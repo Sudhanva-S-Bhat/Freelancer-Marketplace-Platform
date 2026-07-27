@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Briefcase, GraduationCap, Globe, MapPin,
-  DollarSign, Plus, Trash2, CheckCircle, Save,
+  Plus, Trash2, CheckCircle, Save,
   ChevronRight, ChevronLeft, Sparkles, Clock, Code, CreditCard
 } from 'lucide-react';
 import api from '../../api/axiosInstance';
@@ -281,10 +281,10 @@ export default function FreelancerEditProfile() {
                       <input style={inp} type="number" min="0" max="50" value={form.yearsOfExperience} onChange={on('yearsOfExperience')} onFocus={focusIn} onBlur={focusOut} placeholder="e.g. 3" />
                     </Field>
                     <Field>
-                      <Label>Hourly Rate ($)</Label>
+                      <Label>Hourly Rate (₹)</Label>
                       <div style={{ position: 'relative' }}>
-                        <DollarSign size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)', pointerEvents: 'none' }} />
-                        <input style={{ ...inp, paddingLeft: 38 }} type="number" min="0" value={form.hourlyRate} onChange={on('hourlyRate')} onFocus={focusIn} onBlur={focusOut} placeholder="50" />
+                        <span style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)', fontSize: 15, fontFamily: 'var(--font-mono)', pointerEvents: 'none' }}>₹</span>
+                        <input style={{ ...inp, paddingLeft: 38 }} type="number" min="0" value={form.hourlyRate} onChange={on('hourlyRate')} onFocus={focusIn} onBlur={focusOut} placeholder="500" />
                       </div>
                     </Field>
                     <Field span={2}>
