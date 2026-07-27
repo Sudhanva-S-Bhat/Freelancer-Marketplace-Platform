@@ -170,6 +170,9 @@ a:hover { color: #fff; }
 /* ═══════════════════════════════════════════
    LUMINA CURSOR
    ═══════════════════════════════════════════ */
+.lc-dot, .lc-ring {
+  display: none !important;
+}
 .lc-dot {
   width: 8px; height: 8px;
   background: var(--cyan);
