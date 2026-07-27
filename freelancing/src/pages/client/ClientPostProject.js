@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Layers, DollarSign, Calendar, Tag, Star, CheckCircle } from "lucide-react";
+import { FileText, Layers, Calendar, Tag, Star, CheckCircle } from "lucide-react";
 import api from "../../api/axiosInstance";
 import LuminaSelect from "../../components/ui/LuminaSelect";
 import "../../styles/dashboard.css";
