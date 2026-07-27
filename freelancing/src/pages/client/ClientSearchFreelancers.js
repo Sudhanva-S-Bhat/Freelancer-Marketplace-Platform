@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Search, MapPin, Clock, DollarSign,
+    Search, MapPin, Clock,
     Briefcase, Globe, ExternalLink, Users, X,
     MessageSquare, Send, CheckCircle, ChevronDown
 } from 'lucide-react';

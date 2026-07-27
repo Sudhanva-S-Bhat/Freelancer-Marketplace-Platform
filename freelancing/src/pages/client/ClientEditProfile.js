@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Briefcase, Globe, MapPin,
-  DollarSign, CheckCircle, Save, Sparkles,
+  CheckCircle, Save, Sparkles,
   Building, Phone, ChevronRight, ChevronLeft
 } from 'lucide-react';
 import api from '../../api/axiosInstance';
@@ -44,7 +44,6 @@ const INDUSTRIES = [
 const COMPANY_SIZES  = ['1-10','11-50','51-200','201-500','500+'];
 const HIRING_PREFS   = ['Fixed Price','Hourly','Both'];
 const COMM_PREFS     = ['Email','Chat','Video Call','Phone'];
-const CURRENCIES     = ['USD','EUR','INR','GBP','AUD'];
 
 export default function ClientEditProfile() {
   const [step,    setStep]    = useState(0);
