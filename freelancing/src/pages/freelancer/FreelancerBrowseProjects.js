@@ -188,8 +188,10 @@ function FreelancerBrowseProjects() {
                                     
                                     <div style={{ display: 'flex', gap: '24px', color: 'var(--text-muted)', fontSize: '13px' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <DollarSign size={16} color="#00FF88" />
-                                            <span>Est. Budget: <strong style={{ color: 'var(--text-primary)' }}>{formatProjectBudget(project.budget, project.clientId?.currency)}</strong></span>
+                                            <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#00FF88', width: '16px', display: 'inline-block', textAlign: 'center', fontFamily: 'var(--font-mono)' }}>
+                                                {user?.currency === 'INR' ? '₹' : '$'}
+                                            </span>
+                                            <span>Est. Budget: <strong style={{ color: 'var(--text-primary)' }}>{formatProjectBudget(project.budget, project.clientId?.currency).substring(1)}</strong></span>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                             <Clock size={16} color="#FFB800" />
