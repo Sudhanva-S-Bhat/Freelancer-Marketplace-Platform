@@ -47,7 +47,9 @@ function FreelancerBrowseProjects() {
 
             if (projRes.data.success) {
                 const myBiddedProjectIds = new Set(
-                    (propRes.data.proposals || []).map(p => p.project._id)
+                    (propRes.data.proposals || [])
+                        .filter(p => p && p.project)
+                        .map(p => p.project._id)
                 );
                 
                 // Only show projects we haven't bid on yet
