@@ -219,7 +219,7 @@ function FreelancerBrowseProjects() {
                                 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
                                     <div>
-                                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Bid Amount (₹) <span style={{ color: 'var(--cyan)', marginLeft: 4 }}>*</span></label> color: 'var(--cyan)', marginLeft: 4 }}>*</span></label>
+                                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Bid Amount (₹) <span style={{ color: 'var(--cyan)', marginLeft: 4 }}>*</span></label>
                                         <input 
                                             type="number" 
                                             required 
