@@ -184,7 +184,9 @@ function FreelancerBrowseProjects() {
                                     </div>
                                     <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.5', marginBottom: '16px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                                         {project.description}
-                                                                <div style={{ display: 'flex', gap: '24px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                                    </p>
+                                    
+                                    <div style={{ display: 'flex', gap: '24px', color: 'var(--text-muted)', fontSize: '13px' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                             <DollarSign size={16} color="#00FF88" />
                                             <span>Est. Budget: <strong style={{ color: 'var(--text-primary)' }}>{formatProjectBudget(project.budget, project.clientId?.currency)}</strong></span>
