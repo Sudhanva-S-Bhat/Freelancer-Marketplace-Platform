@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Briefcase, GraduationCap, Globe, MapPin,
-  DollarSign, Plus, Trash2, CheckCircle, Save,
+  Plus, Trash2, CheckCircle, Save,
   ChevronRight, ChevronLeft, Sparkles, Clock, Code, CreditCard
 } from 'lucide-react';
 import api from '../../api/axiosInstance';
