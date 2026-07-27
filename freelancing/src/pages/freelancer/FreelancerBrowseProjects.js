@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, DollarSign, Clock, Briefcase, ChevronRight, X, Send } from 'lucide-react';
+import { Search, Clock, Briefcase, ChevronRight, X, Send } from 'lucide-react';
 import api from '../../api/axiosInstance';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
-import { useAuth } from '../../context/AuthContext';
 import '../../styles/dashboard.css';
 
 /* ── Shared field styles ─────────────────────── */
@@ -19,7 +18,6 @@ const focusIn  = e => { e.target.style.borderColor = 'var(--cyan)'; e.target.sty
 const focusOut = e => { e.target.style.borderColor = 'var(--border-strong)'; e.target.style.boxShadow = 'none'; };
 
 function FreelancerBrowseProjects() {
-    const { user } = useAuth();
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -37,10 +35,6 @@ function FreelancerBrowseProjects() {
     useEffect(() => {
         fetchProjects();
     }, []);
-
-    const formatProjectBudget = (budget) => {
-        return `₹${Number(budget).toLocaleString()}`;
-    };
 
     const fetchProjects = async () => {
         try {
