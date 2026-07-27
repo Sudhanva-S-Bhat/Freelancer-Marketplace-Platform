@@ -5,6 +5,7 @@ import api from '../../api/axiosInstance';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
+import { useAuth } from '../../context/AuthContext';
 import '../../styles/dashboard.css';
 
 /* ── Shared field styles ─────────────────────── */
@@ -18,6 +19,7 @@ const focusIn  = e => { e.target.style.borderColor = 'var(--cyan)'; e.target.sty
 const focusOut = e => { e.target.style.borderColor = 'var(--border-strong)'; e.target.style.boxShadow = 'none'; };
 
 function FreelancerBrowseProjects() {
+    const { user } = useAuth();
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -35,6 +37,21 @@ function FreelancerBrowseProjects() {
     useEffect(() => {
         fetchProjects();
     }, []);
+
+    const formatProjectBudget = (budget, projectOwnerCurrency) => {
+        const fromCur = projectOwnerCurrency || 'USD';
+        const toCur = user?.currency || 'USD';
+        
+        let converted = budget;
+        if (fromCur === 'USD' && toCur === 'INR') {
+            converted = budget * 83;
+        } else if (fromCur === 'INR' && toCur === 'USD') {
+            converted = budget / 83;
+        }
+        
+        const symbol = toCur === 'INR' ? '₹' : '$';
+        return `${symbol}${Math.round(converted).toLocaleString()}`;
+    };
 
     const fetchProjects = async () => {
         try {
@@ -73,9 +90,19 @@ function FreelancerBrowseProjects() {
         setSubmitting(true);
 
         try {
+            let finalBidAmount = Number(bidAmount);
+            const freeCur = user?.currency || 'USD';
+            const projCur = selectedProject.clientId?.currency || 'USD';
+            
+            if (freeCur === 'INR' && projCur === 'USD') {
+                finalBidAmount = Number(bidAmount) / 83;
+            } else if (freeCur === 'USD' && projCur === 'INR') {
+                finalBidAmount = Number(bidAmount) * 83;
+            }
+
             const res = await api.post('/proposals/submit', {
                 projectId: selectedProject._id,
-                bidAmount: Number(bidAmount),
+                bidAmount: finalBidAmount,
                 estimatedTime,
                 coverLetter
             });
@@ -157,12 +184,10 @@ function FreelancerBrowseProjects() {
                                     </div>
                                     <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.5', marginBottom: '16px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                                         {project.description}
-                                    </p>
-                                    
-                                    <div style={{ display: 'flex', gap: '24px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                                                                <div style={{ display: 'flex', gap: '24px', color: 'var(--text-muted)', fontSize: '13px' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                             <DollarSign size={16} color="#00FF88" />
-                                            <span>Est. Budget: <strong style={{ color: 'var(--text-primary)' }}>${project.budget}</strong></span>
+                                            <span>Est. Budget: <strong style={{ color: 'var(--text-primary)' }}>{formatProjectBudget(project.budget, project.clientId?.currency)}</strong></span>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                             <Clock size={16} color="#FFB800" />
@@ -213,7 +238,7 @@ function FreelancerBrowseProjects() {
                                 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
                                     <div>
-                                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Bid Amount ($) <span style={{ color: 'var(--cyan)', marginLeft: 4 }}>*</span></label>
+                                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Bid Amount ({user?.currency === 'INR' ? '₹' : '$'}) <span style={{ color: 'var(--cyan)', marginLeft: 4 }}>*</span></label>
                                         <input 
                                             type="number" 
                                             required 

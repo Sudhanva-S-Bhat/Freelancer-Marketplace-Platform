@@ -186,7 +186,7 @@ function ClientDashboard() {
                                                 <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Posted: {new Date(project.createdAt).toLocaleDateString()}</div>
                                             </td>
                                             <td style={{ padding: '20px 24px', fontWeight: '500' }}>
-                                                ₹{project.budget.toLocaleString()}
+                                                {user?.currency === 'INR' ? '₹' : '$'}{project.budget.toLocaleString()}
                                             </td>
                                             <td style={{ padding: '20px 24px' }}>
                                                 <Badge variant={getStatusBadgeVariant(project.status)}>{project.status}</Badge>
