@@ -254,7 +254,7 @@ function FreelancerCard({ freelancer: f, index, onMessage, ratings = {} }) {
                 </div>
                 {f.hourlyRate > 0 && (
                     <div style={{ padding: '6px 14px', borderRadius: 99, flexShrink: 0, background: 'rgba(47,216,238,.08)', border: '1px solid rgba(47,216,238,.2)', color: 'var(--cyan)', fontSize: 13, fontFamily: 'var(--font-mono)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <DollarSign size={12} />{f.hourlyRate}/hr
+                        <span style={{ fontFamily: 'var(--font-mono)' }}>₹</span>{f.hourlyRate}/hr
                     </div>
                 )}
             </div>

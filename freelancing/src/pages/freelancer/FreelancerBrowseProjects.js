@@ -38,19 +38,8 @@ function FreelancerBrowseProjects() {
         fetchProjects();
     }, []);
 
-    const formatProjectBudget = (budget, projectOwnerCurrency) => {
-        const fromCur = projectOwnerCurrency || 'USD';
-        const toCur = user?.currency || 'USD';
-        
-        let converted = budget;
-        if (fromCur === 'USD' && toCur === 'INR') {
-            converted = budget * 83;
-        } else if (fromCur === 'INR' && toCur === 'USD') {
-            converted = budget / 83;
-        }
-        
-        const symbol = toCur === 'INR' ? '₹' : '$';
-        return `${symbol}${Math.round(converted).toLocaleString()}`;
+    const formatProjectBudget = (budget) => {
+        return `₹${Number(budget).toLocaleString()}`;
     };
 
     const fetchProjects = async () => {
@@ -90,19 +79,9 @@ function FreelancerBrowseProjects() {
         setSubmitting(true);
 
         try {
-            let finalBidAmount = Number(bidAmount);
-            const freeCur = user?.currency || 'USD';
-            const projCur = selectedProject.clientId?.currency || 'USD';
-            
-            if (freeCur === 'INR' && projCur === 'USD') {
-                finalBidAmount = Number(bidAmount) / 83;
-            } else if (freeCur === 'USD' && projCur === 'INR') {
-                finalBidAmount = Number(bidAmount) * 83;
-            }
-
             const res = await api.post('/proposals/submit', {
                 projectId: selectedProject._id,
-                bidAmount: finalBidAmount,
+                bidAmount: Number(bidAmount),
                 estimatedTime,
                 coverLetter
             });
@@ -188,10 +167,8 @@ function FreelancerBrowseProjects() {
                                     
                                     <div style={{ display: 'flex', gap: '24px', color: 'var(--text-muted)', fontSize: '13px' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#00FF88', width: '16px', display: 'inline-block', textAlign: 'center', fontFamily: 'var(--font-mono)' }}>
-                                                {user?.currency === 'INR' ? '₹' : '$'}
-                                            </span>
-                                            <span>Est. Budget: <strong style={{ color: 'var(--text-primary)' }}>{formatProjectBudget(project.budget, project.clientId?.currency).substring(1)}</strong></span>
+                                            <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#00FF88', width: '16px', display: 'inline-block', textAlign: 'center', fontFamily: 'var(--font-mono)' }}>₹</span>
+                                            <span>Est. Budget: <strong style={{ color: 'var(--text-primary)' }}>{Number(project.budget).toLocaleString()}</strong></span>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                             <Clock size={16} color="#FFB800" />
@@ -242,7 +219,7 @@ function FreelancerBrowseProjects() {
                                 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
                                     <div>
-                                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Bid Amount ({user?.currency === 'INR' ? '₹' : '$'}) <span style={{ color: 'var(--cyan)', marginLeft: 4 }}>*</span></label>
+                                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Bid Amount (₹) <span style={{ color: 'var(--cyan)', marginLeft: 4 }}>*</span></label> color: 'var(--cyan)', marginLeft: 4 }}>*</span></label>
                                         <input 
                                             type="number" 
                                             required 

@@ -254,8 +254,8 @@ export default function ClientEditProfile() {
                     <Field>
                       <Label>Preferred Currency</Label>
                       <div style={{ position: 'relative' }}>
-                        <DollarSign size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)', pointerEvents: 'none' }} />
-                        <LuminaSelect name="preferredCurrency" value={form.preferredCurrency} onChange={e => set('preferredCurrency', e.target.value)} placeholder="USD" options={CURRENCIES} />
+                        <span style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-faint)', fontSize: 15, fontFamily: 'var(--font-mono)', pointerEvents: 'none' }}>₹</span>
+                        <input style={{ ...inp, paddingLeft: 38 }} disabled value="INR" />
                       </div>
                     </Field>
                     <Field span={2}>

@@ -96,7 +96,7 @@ function FreelancerDashboard() {
             {/* Stats */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 18, marginBottom: 34 }}>
                 <StatCard icon={Briefcase}    value={stats.activeBids}  label="Active Bids"       color="cyan"    delay={1} />
-                <StatCard icon={DollarSign}   value={`$${stats.totalEarnings}`} label="Total Earnings"    color="green"   delay={2} />
+                <StatCard icon={DollarSign}   value={`₹${stats.totalEarnings}`} label="Total Earnings"    color="green"   delay={2} />
                 <StatCard icon={Star}         value={stats.activeContracts}  label="Active Contracts"  color="violet"  delay={3} />
                 <StatCard icon={MessageSquare} value={stats.unreadMessages} label="Unread Messages"   color="magenta" delay={4} />
             </div>
